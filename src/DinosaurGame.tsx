@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Obstacle = { x: number; w: number; h: number };
 
@@ -293,44 +293,46 @@ export const DinosaurGame = () => {
 	}, [isLandscape]);
 
 	return (
-		<div
-			className="fixed inset-0 overflow-hidden overscroll-none touch-none select-none"
-			// 追加で保険（Tailwindのtouch-noneと同等だが明示）
-			style={{ touchAction: "none" }}
-			onPointerDown={(e) => {
-				// ここでpreventDefaultしないと端末によっては変な挙動が混ざる
-				e.preventDefault();
-
-				// jump処理はeffect内関数なので、ここでは「keydownと同様に」したいところだが、
-				// React経由で直接呼ぶより windowイベントに寄せる方が事故りにくい。
-				// なので bodyへ投げない。代わりにカスタムイベントで通知。
-				window.dispatchEvent(new Event("app-jump"));
-			}}
-		>
-			{/* Canvas */}
-			<canvas
-				ref={canvasRef}
-				className="block h-screen w-screen"
-				// 念のためここにも
+		<div className="w-full">
+			<div
+				className="inset-0 overflow-hidden overscroll-none touch-none select-none"
+				// 追加で保険（Tailwindのtouch-noneと同等だが明示）
 				style={{ touchAction: "none" }}
-			/>
+				onPointerDown={(e) => {
+					// ここでpreventDefaultしないと端末によっては変な挙動が混ざる
+					e.preventDefault();
 
-			{/* 横向きブロック */}
-			{isLandscape && (
-				<div className="fixed inset-0 z-10 grid place-items-center bg-black/85 px-6 text-center text-white">
-					<div className="space-y-2">
-						<div className="text-base font-semibold">
-							縦画面に戻せ
-						</div>
-						<div className="text-sm opacity-80">
-							横向きでは遊ばせない。
+					// jump処理はeffect内関数なので、ここでは「keydownと同様に」したいところだが、
+					// React経由で直接呼ぶより windowイベントに寄せる方が事故りにくい。
+					// なので bodyへ投げない。代わりにカスタムイベントで通知。
+					window.dispatchEvent(new Event("app-jump"));
+				}}
+			>
+				{/* Canvas */}
+				<canvas
+					ref={canvasRef}
+					className="block h-screen w-screen"
+					// 念のためここにも
+					style={{ touchAction: "none" }}
+				/>
+
+				{/* 横向きブロック */}
+				{isLandscape && (
+					<div className="fixed inset-0 z-10 grid place-items-center bg-black/85 px-6 text-center text-white">
+						<div className="space-y-2">
+							<div className="text-base font-semibold">
+								縦画面に戻せ
+							</div>
+							<div className="text-sm opacity-80">
+								横向きでは遊ばせない。
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
+				)}
 
-			{/* Reactのpointerdownからゲームへ通知する受け口（イベントで接続） */}
-			<JumpBridge />
+				{/* Reactのpointerdownからゲームへ通知する受け口（イベントで接続） */}
+				<JumpBridge />
+			</div>
 		</div>
 	);
 };
