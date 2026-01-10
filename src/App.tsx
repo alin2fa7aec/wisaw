@@ -1,6 +1,7 @@
 import "./App.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { DinosaurGame } from "./DinosaurGame";
 
 const Container = () => {
 	return (
@@ -27,6 +28,9 @@ const App = () => {
 		<>
 			<div>
 				<Container />
+			</div>
+			<div>
+				<DinosaurGame />
 			</div>
 		</>
 	);
