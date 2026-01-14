@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Greeting } from "./Greeting";
 import { Forms } from "./Forms";
 import { DinosaurGame } from "./DinosaurGame";
+import { LabeledSeparator } from "@/components/ui/LabeledSeparator";
 
 const Container = () => {
 	return (
@@ -11,19 +11,9 @@ const Container = () => {
 				<CardContent className="pt-6">
 					<div className="flex flex-col gap-4">
 						<Greeting />
-						<div className="relative">
-							<div
-								aria-hidden="true"
-								className="absolute inset-0 grid place-items-center"
-							>
-								<Separator className="bg-primary" />
-							</div>
-							<div className="relative flex justify-center">
-								<span className="bg-background px-2 text-sm text-foreground">
-									Separate
-								</span>
-							</div>
-						</div>
+						<LabeledSeparator className="bg-primary">
+							Separate
+						</LabeledSeparator>
 						<Forms />
 					</div>
 				</CardContent>
