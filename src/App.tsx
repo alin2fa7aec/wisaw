@@ -12,12 +12,16 @@ const Container = () => {
 					<div className="flex flex-col gap-4">
 						<Greeting />
 						<LabeledSeparator className="bg-primary">
-							Separate
+							Forms
 						</LabeledSeparator>
 						<Forms />
 					</div>
 				</CardContent>
 			</Card>
+
+			<LabeledSeparator className="bg-primary">
+				Dinosaur Game!
+			</LabeledSeparator>
 
 			<Card className="shadow-none border-none">
 				<CardContent className="pt-6">
