@@ -159,11 +159,11 @@
 }
 
 .separator-animate[data-orientation="horizontal"] {
-	animation: separator-grow-x 600ms ease-out;
+	animation: separator-grow-x 3000ms ease-in-out;
 }
 
 .separator-animate[data-orientation="vertical"] {
-	animation: separator-grow-y 600ms ease-out;
+	animation: separator-grow-y 3000ms ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
