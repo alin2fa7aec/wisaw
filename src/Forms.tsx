@@ -5,7 +5,31 @@ import { Label } from "@/components/ui/label";
 
 export const Forms = () => {
 	const [name, setName] = useState("");
-	const isEmpty = name.trim().length === 0;
+	const [address, setAddress] = useState("");
+	const [allergy, setAllergy] = useState("");
+	const [attendance, setAttendance] = useState("basic-one");
+
+	const isNameEmpty = name.trim().length === 0;
+	const isAddressEmpty = address.trim().length === 0;
+	const isAllergyEmpty = allergy.trim().length === 0;
+
+	const handleExport = () => {
+		const payload = {
+			name,
+			address,
+			allergy,
+			attendance,
+		};
+		const blob = new Blob([JSON.stringify(payload, null, 2)], {
+			type: "application/json",
+		});
+		const url = URL.createObjectURL(blob);
+		const anchor = document.createElement("a");
+		anchor.href = url;
+		anchor.download = "form-data.json";
+		anchor.click();
+		URL.revokeObjectURL(url);
+	};
 
 	return (
 		<div className="flex flex-col">
@@ -15,37 +39,40 @@ export const Forms = () => {
 				value={name}
 				onChange={(event) => setName(event.target.value)}
 			/>
-			{isEmpty ? (
+			{isNameEmpty ? (
 				<p className="text-xs font-medium text-destructive ml-auto">
 					This field is required
 				</p>
 			) : null}
 
 			<Textarea
-				id="name"
+				id="address"
 				placeholder="Enter your address"
-				value={name}
-				onChange={(event) => setName(event.target.value)}
+				value={address}
+				onChange={(event) => setAddress(event.target.value)}
 			/>
-			{isEmpty ? (
+			{isAddressEmpty ? (
 				<p className="text-xs font-medium text-destructive ml-auto">
 					This field is required
 				</p>
 			) : null}
 
 			<Textarea
-				id="name"
+				id="allergy"
 				placeholder="Enter your allergy"
-				value={name}
-				onChange={(event) => setName(event.target.value)}
+				value={allergy}
+				onChange={(event) => setAllergy(event.target.value)}
 			/>
-			{isEmpty ? (
+			{isAllergyEmpty ? (
 				<p className="text-xs font-medium text-destructive ml-auto">
 					This field is required
 				</p>
 			) : null}
 
-			<RadioGroup defaultValue="option-one">
+			<RadioGroup
+				value={attendance}
+				onValueChange={(value) => setAttendance(value)}
+			>
 				<div className="flex items-center gap-2">
 					<RadioGroupItem value="basic-one" id="basic-one" />
 					<Label htmlFor="basic-one">出席</Label>
@@ -55,6 +82,14 @@ export const Forms = () => {
 					<Label htmlFor="basic-two">欠席</Label>
 				</div>
 			</RadioGroup>
+
+			<button
+				type="button"
+				className="mt-4 self-end rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+				onClick={handleExport}
+			>
+				JSONを保存
+			</button>
 		</div>
 	);
 };
