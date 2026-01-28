@@ -1,0 +1,22 @@
+{
+  "name": "api",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/handler.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && esbuild src/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/handler.js --sourcemap",
+    "build:watch": "esbuild src/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/handler.js --sourcemap --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.0.0"
+  }
+}
