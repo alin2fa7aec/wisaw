@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
-// ここは後で packages/shared に移す前提でもいい
+type Submit = z.infer<typeof SubmitSchema>;
 const SubmitSchema = z.object({
 	email: z.string().email(),
 	answers: z.record(z.string(), z.string().max(2000)),
@@ -17,16 +17,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 			? Buffer.from(event.body, "base64").toString("utf-8")
 			: event.body;
 
-		const parsedJson = JSON.parse(raw);
-		const data = SubmitSchema.parse(parsedJson);
+		if (raw.length > 100_000) return json(413, { ok: false });
 
-		// TODO: 保存（DynamoDB等）とメール送信（SES）
-		// いまは疎通確認として受け取った内容を返すだけ
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(raw);
+		} catch {
+			return json(400, { ok: false, error: "invalid json" });
+		}
+
+		let data: Submit;
+		try {
+			data = SubmitSchema.parse(parsed);
+		} catch (err) {
+			safeLogError(err);
+			return json(400, { ok: false, error: "invalid input" });
+		}
+
+		// TODO: 保存・メール送信はここに追加
 		return json(200, { ok: true, received: data });
 	} catch (err) {
-		// 詳細はクライアントに返すな。ログに出せ。
-		console.error(err);
-		return json(400, { ok: false });
+		safeLogError(err);
+
+		if (err instanceof ZodError) {
+			return json(400, { ok: false, error: "invalid input" });
+		}
+
+		// ここに来るのは “想定外”＝サーバ側の問題
+		return json(500, { ok: false });
 	}
 };
 
@@ -35,9 +53,23 @@ function json(statusCode: number, body: unknown) {
 		statusCode,
 		headers: {
 			"content-type": "application/json; charset=utf-8",
-			// API Gateway 側でCORS設定するならここは不要。直書きするなら最低限こう。
-			"access-control-allow-origin": "*",
 		},
 		body: JSON.stringify(body),
 	};
+}
+
+function safeLogError(err: unknown) {
+	try {
+		if (err instanceof ZodError) {
+			console.error("ZodError issues:", err.issues);
+			return;
+		}
+		if (err instanceof Error) {
+			console.error(err.stack ?? err.message);
+			return;
+		}
+		console.error("Unknown error:", String(err));
+	} catch {
+		console.error("Error while logging error");
+	}
 }
