@@ -11,6 +11,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.978.0",
+    "@aws-sdk/util-dynamodb": "^3.978.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
