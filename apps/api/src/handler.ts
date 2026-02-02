@@ -6,6 +6,7 @@ import {
 	GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { createHash } from "crypto";
 
 // for Real DynamoDB
 // const ddb = new DynamoDBClient({});
@@ -26,6 +27,22 @@ const SubmitSchema = z.object({
 	email: z.string().email(),
 	answers: z.record(z.string(), z.string().max(2000)),
 });
+
+function canonicalJson(v: unknown): string {
+	if (v === null || typeof v !== "object") return JSON.stringify(v);
+	if (Array.isArray(v)) return `[${v.map(canonicalJson).join(",")}]`;
+	const obj = v as Record<string, unknown>;
+	const keys = Object.keys(obj).sort();
+	return `{${keys.map((k) => JSON.stringify(k) + ":" + canonicalJson(obj[k])).join(",")}}`;
+}
+
+function payloadHash(email: string, answers: Record<string, string>): string {
+	const h = createHash("sha256");
+	h.update(email);
+	h.update("\n");
+	h.update(canonicalJson(answers));
+	return h.digest("hex");
+}
 
 type Submit = z.infer<typeof SubmitSchema>;
 
@@ -56,6 +73,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
 		const now = new Date().toISOString();
 		const pk = `submission#${data.idempotencyKey}`;
+		const ph = payloadHash(data.email, data.answers);
 
 		// 1) まず保存（冪等：同じpkが既にあれば弾く）
 		try {
@@ -68,6 +86,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 						email: data.email,
 						answers: data.answers,
 						emailStatus: "PENDING",
+						payloadHash: ph,
 					}),
 					ConditionExpression: "attribute_not_exists(pk)",
 				}),
@@ -82,16 +101,30 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 						ConsistentRead: true,
 					}),
 				);
+
 				if (got.Item) {
-					const item = unmarshall(got.Item);
+					const item = unmarshall(got.Item) as any;
+					const existingHash = item.payloadHash as string | undefined;
+
+					if (existingHash && existingHash !== ph) {
+						// 同じ冪等キーで内容が違う → 409
+						return json(409, {
+							ok: false,
+							error: "idempotency conflict",
+						});
+					}
+
+					// 一致（または旧データにhashが無い）→ 既存を返す
 					return json(200, {
 						ok: true,
 						id: data.idempotencyKey,
 						status: item.emailStatus,
 					});
 				}
-				// ここに来たら整合が壊れてる。500で良い。
+
+				return json(500, { ok: false });
 			}
+
 			safeLogError(err);
 			return json(500, { ok: false });
 		}
