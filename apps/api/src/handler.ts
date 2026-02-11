@@ -4,9 +4,11 @@ import {
 	DynamoDBClient,
 	PutItemCommand,
 	GetItemCommand,
+	UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { createHash } from "crypto";
+import { sendEmail } from "./mail";
 
 // for Real DynamoDB
 // const ddb = new DynamoDBClient({});
@@ -129,13 +131,59 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 			return json(500, { ok: false });
 		}
 
-		// 2) ここに SES 送信を足す（今は保存だけ）
-		return json(200, { ok: true, id: data.idempotencyKey });
+		// 2) メール送信
+		let emailStatus = "PENDING";
+		try {
+			await sendEmail({
+				to: data.email,
+				subject: "【wisaw】ご回答ありがとうございます",
+				bodyText: buildMailBody(data),
+			});
+			emailStatus = "SENT";
+		} catch (err) {
+			safeLogError(err);
+			emailStatus = "FAILED";
+		}
+
+		// 3) emailStatus を更新
+		if (emailStatus !== "PENDING") {
+			try {
+				await ddb.send(
+					new UpdateItemCommand({
+						TableName: TABLE_NAME,
+						Key: marshall({ pk }),
+						UpdateExpression: "SET emailStatus = :s",
+						ExpressionAttributeValues: marshall({
+							":s": emailStatus,
+						}),
+					}),
+				);
+			} catch (err) {
+				// ステータス更新失敗はログだけ残して握り潰す
+				safeLogError(err);
+			}
+		}
+
+		return json(200, { ok: true, id: data.idempotencyKey, emailStatus });
 	} catch (err) {
 		safeLogError(err);
 		return json(500, { ok: false });
 	}
 };
+
+function buildMailBody(data: Submit): string {
+	const lines = [
+		"ご回答いただきありがとうございます。",
+		"以下の内容で受け付けました。",
+		"",
+		"─────────────────────",
+		...Object.entries(data.answers).map(([q, a]) => `${q}: ${a}`),
+		"─────────────────────",
+		"",
+		"※ このメールは自動送信です。",
+	];
+	return lines.join("\n");
+}
 
 function json(statusCode: number, body: unknown) {
 	return {
