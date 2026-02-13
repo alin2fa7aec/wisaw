@@ -333,7 +333,7 @@ export const Forms = () => {
 
 			{/* ── メッセージ ── */}
 			<fieldset className="flex flex-col gap-2">
-				<Label className="font-semibold">メッセージ</Label>
+				<Label className="font-semibold">なにかあれば</Label>
 				<Textarea
 					placeholder="本日は晴天なり"
 					value={message}
@@ -352,7 +352,7 @@ export const Forms = () => {
 			</button>
 
 			{submitState.status === "success" && (
-				<p className="mt-2 text-sm text-green-600 text-center">
+				<p className="mt-2 text-sm text-success text-center">
 					送信が完了しました
 				</p>
 			)}
