@@ -157,6 +157,18 @@
 	}
 }
 
+.separator-before-animate {
+	transform-origin: center;
+}
+
+.separator-before-animate[data-orientation="horizontal"] {
+	transform: scaleX(0);
+}
+
+.separator-before-animate[data-orientation="vertical"] {
+	transform: scaleY(0);
+}
+
 .separator-animate {
 	transform-origin: center;
 }
@@ -170,7 +182,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.separator-animate {
+	.separator-animate,
+	.separator-before-animate {
 		animation: none;
+		transform: none;
 	}
 }
