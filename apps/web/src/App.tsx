@@ -19,9 +19,11 @@ const Container = () => {
 				</CardContent>
 			</Card>
 
-			<LabeledSeparator className="bg-primary">
-				Dinosaur Game!
-			</LabeledSeparator>
+			<div className="px-6">
+				<LabeledSeparator className="bg-primary">
+					Dinosaur Game!
+				</LabeledSeparator>
+			</div>
 
 			<Card className="shadow-none border-none">
 				<CardContent className="pt-6">
