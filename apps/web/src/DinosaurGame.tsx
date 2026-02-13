@@ -24,8 +24,9 @@ export const DinosaurGame = () => {
 		dpr: 1,
 		scale: 1,
 
-		running: true,
+		running: false,
 		gameOver: false,
+		waitingToStart: true,
 
 		// B) 1タップで停止表示、次でリスタート
 		// 0:通常 / 1:GO表示(次タップで「再開待ち」へ) / 2:再開待ち
@@ -101,7 +102,8 @@ export const DinosaurGame = () => {
 			g.player.onGround = true;
 
 			g.gameOver = false;
-			g.running = true;
+			g.running = false;
+			g.waitingToStart = true;
 
 			g.gameOverTapStage = 0;
 			g.inputLockUntil = 0;
@@ -124,6 +126,14 @@ export const DinosaurGame = () => {
 
 			// 横向き中は入力を無視（縦固定前提）
 			if (isLandscape) return;
+
+			// 待機中→ゲーム開始
+			if (g.waitingToStart) {
+				g.waitingToStart = false;
+				g.running = true;
+				g.lastT = 0;
+				return;
+			}
 
 			if (!g.running && g.gameOver) {
 				// 1タップ目：GO表示を確定→「再開待ち」に移行
@@ -256,7 +266,9 @@ export const DinosaurGame = () => {
 			ctx.font = "14px system-ui";
 			ctx.fillText(`SCORE ${Math.floor(g.tAlive * 10)}`, 10, 18);
 
-			if (g.gameOver) {
+			if (g.waitingToStart) {
+				ctx.fillText("TAP TO START", 95, 150);
+			} else if (g.gameOver) {
 				const msg =
 					g.gameOverTapStage === 1
 						? "GAME OVER"
