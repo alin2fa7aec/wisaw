@@ -6,3 +6,12 @@ export const SubmitSchema = z.object({
 });
 
 export type Submit = z.infer<typeof SubmitSchema>;
+
+/**
+ * メールアドレスのバリデーション関数
+ * Zodと同じバリデーションロジックを使用
+ */
+export function isValidEmail(email: string): boolean {
+	const result = z.string().email().safeParse(email);
+	return result.success;
+}

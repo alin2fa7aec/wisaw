@@ -171,13 +171,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 	}
 };
 
+const ANSWER_LABELS: Record<string, string> = {
+	IntentionsToAttendCeremony: "挙式のご出欠",
+	IntentionsToAttendReception: "披露宴のご出欠",
+	Host: "どちら側のゲスト",
+	FamilyNameKana: "姓（カナ）",
+	FirstNameKana: "名（カナ）",
+	FamilyNameEn: "姓（英語）",
+	FirstNameEn: "名（英語）",
+	Tel: "電話番号",
+	PostCode: "郵便番号",
+	Prefecture: "都道府県",
+	Municipalities: "市区町村",
+	Block: "番地",
+	BuildingAndRoom: "建物名・部屋番号",
+	AllergyHas: "アレルギー",
+	AllergyItems: "特定原材料",
+	AllergyOther: "その他アレルギー",
+	Message: "メッセージ",
+};
+
 function buildMailBody(data: Submit): string {
 	const lines = [
 		"ご回答いただきありがとうございます。",
 		"以下の内容で受け付けました。",
 		"",
 		"─────────────────────",
-		...Object.entries(data.answers).map(([q, a]) => `${q}: ${a}`),
+		...Object.entries(data.answers)
+			.filter(([, a]) => a.length > 0)
+			.map(([q, a]) => `${ANSWER_LABELS[q] ?? q}: ${a}`),
 		"─────────────────────",
 		"",
 		"※ このメールは自動送信です。",
