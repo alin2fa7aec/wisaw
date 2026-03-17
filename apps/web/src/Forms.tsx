@@ -5,6 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { isValidEmail } from "@wisaw/shared";
+import { Spinner } from "@/components/ui/spinner";
+import { CheckCircle } from "@mynaui/icons-react";
 
 type SubmitState =
 	| { status: "idle" }
@@ -348,7 +350,19 @@ export const Forms = () => {
 				disabled={!canSubmit}
 				onClick={handleSubmit}
 			>
-				{submitState.status === "submitting" ? "送信中…" : "送信"}
+				{submitState.status === "submitting" ? (
+					<span className="flex items-center gap-2">
+						<Spinner />
+						送信中…
+					</span>
+				) : submitState.status === "success" ? (
+					<span className="flex items-center gap-2">
+						<CheckCircle className="size-4" />
+						送信完了
+					</span>
+				) : (
+					"送信"
+				)}
 			</button>
 
 			{submitState.status === "success" && (
