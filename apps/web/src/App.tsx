@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,10 +7,14 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from "@/components/ui/drawer";
-import { Greeting } from "./Greeting";
-import { Forms } from "./Forms";
-import { DinosaurGame } from "./DinosaurGame";
+import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
+
+const Greeting = lazy(() =>
+    import("./Greeting").then((m) => ({ default: m.Greeting })),
+);
+const Forms = lazy(() => import("./Forms").then((m) => ({ default: m.Forms })));
+import { DinosaurGame } from "./DinosaurGame";
 
 type ContentKey = "greeting" | "forms" | "dinosaur-game";
 
@@ -71,9 +75,24 @@ const App = () => {
             <div className="flex flex-col h-1/2">
                 <Card className="shadow-none border-none">
                     <CardContent className="pt-6">
-                        {activeContent === "greeting" && <Greeting />}
-                        {activeContent === "forms" && <Forms />}
-                        {activeContent === "dinosaur-game" && <DinosaurGame />}
+                        <Suspense
+                            fallback={
+                                <div className="flex justify-center py-12">
+                                    <Spinner />
+                                </div>
+                            }
+                        >
+                            <div
+                                key={activeContent}
+                                className="animate-fade-in"
+                            >
+                                {activeContent === "greeting" && <Greeting />}
+                                {activeContent === "forms" && <Forms />}
+                                {activeContent === "dinosaur-game" && (
+                                    <DinosaurGame />
+                                )}
+                            </div>
+                        </Suspense>
                     </CardContent>
                 </Card>
             </div>
