@@ -30,7 +30,6 @@ Globals:
         Environment:
             Variables:
                 TABLE_NAME: wisaw-submissions
-                AWS_REGION: ap-northeast-1
                 USE_SES: "1"
                 SES_FROM_ADDRESS: !Ref SesFromAddress
 

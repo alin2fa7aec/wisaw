@@ -27,3 +27,6 @@ dist-ssr
 
 # Local dev overrides
 env.json
+
+# SAM build artifacts
+.aws-sam/
