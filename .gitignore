@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.todo.md
+*.instruction.md
+
+# Local dev overrides
+env.json
