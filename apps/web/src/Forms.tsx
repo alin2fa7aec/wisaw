@@ -118,7 +118,8 @@ export const Forms = () => {
         };
 
         try {
-            const res = await fetch("/submit", {
+            const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+            const res = await fetch(`${apiBase}/submit`, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
                 body: JSON.stringify(body),
