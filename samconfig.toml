@@ -1,0 +1,9 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "wisaw"
+region = "ap-northeast-1"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+parameter_overrides = "SesFromAddress=noreply@wisaw.click AllowOrigin=https://wisaw.click DomainName=wisaw.click AcmCertificateArn=arn:aws:acm:us-east-1:155149244897:certificate/69d15452-1563-43b4-8d5f-9c86ae67001f HostedZoneId=Z05352192U0UUF5Z7NLKJ"

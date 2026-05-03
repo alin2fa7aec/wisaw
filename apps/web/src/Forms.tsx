@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -26,6 +26,9 @@ const SPECIFIC_RAW_MATERIALS = [
 ] as const;
 
 export const Forms = () => {
+    const idempotencyKeyRef = useRef(crypto.randomUUID());
+    const submittingRef = useRef(false);
+
     // 出欠
     const [intentionCeremony, setIntentionCeremony] = useState("");
     const [intentionReception, setIntentionReception] = useState("");
@@ -89,12 +92,13 @@ export const Forms = () => {
     };
 
     const handleSubmit = async () => {
-        if (!canSubmit) return;
+        if (!canSubmit || submittingRef.current) return;
+        submittingRef.current = true;
 
         setSubmitState({ status: "submitting" });
 
         const body = {
-            idempotencyKey: crypto.randomUUID(),
+            idempotencyKey: idempotencyKeyRef.current,
             email: email.trim(),
             answers: {
                 IntentionsToAttendCeremony: intentionCeremony,
@@ -118,7 +122,8 @@ export const Forms = () => {
         };
 
         try {
-            const res = await fetch("/submit", {
+            const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+            const res = await fetch(`${apiBase}/submit`, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
                 body: JSON.stringify(body),
@@ -127,14 +132,17 @@ export const Forms = () => {
             const data = await res.json();
 
             if (data.ok) {
+                idempotencyKeyRef.current = crypto.randomUUID();
                 setSubmitState({ status: "success" });
             } else {
+                submittingRef.current = false;
                 setSubmitState({
                     status: "error",
                     message: data.error ?? "送信に失敗しました",
                 });
             }
         } catch {
+            submittingRef.current = false;
             setSubmitState({
                 status: "error",
                 message: "通信エラーが発生しました",
