@@ -9,8 +9,18 @@ Parameters:
         Description: SES verified sender email address
     AllowOrigin:
         Type: String
-        Default: "*"
+        Default: https://wisaw.click
         Description: CORS allowed origin for the API
+    DomainName:
+        Type: String
+        Default: wisaw.click
+        Description: Custom domain name for CloudFront
+    AcmCertificateArn:
+        Type: String
+        Description: ACM certificate ARN (must be in us-east-1)
+    HostedZoneId:
+        Type: String
+        Description: Route 53 hosted zone ID for the domain
 
 Globals:
     Function:
@@ -66,3 +76,89 @@ Resources:
             PrimaryKey:
                 Name: pk
                 Type: String
+
+    WebBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Sub "${DomainName}-web"
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+
+    WebBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref WebBucket
+            PolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: s3:GetObject
+                      Resource: !Sub "${WebBucket.Arn}/*"
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+    CloudFrontOAC:
+        Type: AWS::CloudFront::OriginAccessControl
+        Properties:
+            OriginAccessControlConfig:
+                Name: !Sub "${DomainName}-oac"
+                OriginAccessControlOriginType: s3
+                SigningBehavior: always
+                SigningProtocol: sigv4
+
+    CloudFrontDistribution:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            DistributionConfig:
+                Enabled: true
+                DefaultRootObject: index.html
+                Aliases:
+                    - !Ref DomainName
+                ViewerCertificate:
+                    AcmCertificateArn: !Ref AcmCertificateArn
+                    SslSupportMethod: sni-only
+                    MinimumProtocolVersion: TLSv1.2_2021
+                Origins:
+                    - Id: S3Origin
+                      DomainName: !GetAtt WebBucket.RegionalDomainName
+                      OriginAccessControlId: !Ref CloudFrontOAC
+                      S3OriginConfig:
+                          OriginAccessIdentity: ""
+                DefaultCacheBehavior:
+                    TargetOriginId: S3Origin
+                    ViewerProtocolPolicy: redirect-to-https
+                    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                    Compress: true
+                CustomErrorResponses:
+                    - ErrorCode: 403
+                      ResponseCode: 200
+                      ResponsePagePath: /index.html
+                    - ErrorCode: 404
+                      ResponseCode: 200
+                      ResponsePagePath: /index.html
+
+    DnsRecord:
+        Type: AWS::Route53::RecordSet
+        Properties:
+            HostedZoneId: !Ref HostedZoneId
+            Name: !Ref DomainName
+            Type: A
+            AliasTarget:
+                DNSName: !GetAtt CloudFrontDistribution.DomainName
+                HostedZoneId: Z2FDTNDATAQYW2
+
+Outputs:
+    ApiUrl:
+        Description: API Gateway endpoint URL
+        Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com"
+    WebUrl:
+        Description: CloudFront distribution URL
+        Value: !Sub "https://${DomainName}"
+    CloudFrontDistributionId:
+        Description: CloudFront distribution ID (for cache invalidation)
+        Value: !Ref CloudFrontDistribution
