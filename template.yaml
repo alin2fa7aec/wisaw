@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: wisaw local dev
+Description: wisaw - ゲストに向けた出欠回答/コンテンツ配信のためのWebサービス
+
+Parameters:
+    SesFromAddress:
+        Type: String
+        Default: noreply@wisaw.click
+        Description: SES verified sender email address
+    AllowOrigin:
+        Type: String
+        Default: "*"
+        Description: CORS allowed origin for the API
 
 Globals:
     Function:
@@ -10,11 +20,9 @@ Globals:
         Environment:
             Variables:
                 TABLE_NAME: wisaw-submissions
-                # ローカルでは DynamoDB Local を叩くため endpoint を渡す
-                DYNAMODB_ENDPOINT: http://dynamodb-local:8000
                 AWS_REGION: ap-northeast-1
-                AWS_ACCESS_KEY_ID: dummy
-                AWS_SECRET_ACCESS_KEY: dummy
+                USE_SES: "1"
+                SES_FROM_ADDRESS: !Ref SesFromAddress
 
 Resources:
     Api:
@@ -22,7 +30,7 @@ Resources:
         Properties:
             CorsConfiguration:
                 AllowOrigins:
-                    - http://localhost:5173
+                    - !Ref AllowOrigin
                 AllowHeaders:
                     - content-type
                 AllowMethods:
@@ -37,6 +45,12 @@ Resources:
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !Ref SubmissionsTable
+                - Statement:
+                      - Effect: Allow
+                        Action:
+                            - ses:SendEmail
+                            - ses:SendRawEmail
+                        Resource: "*"
             Events:
                 Submit:
                     Type: HttpApi
