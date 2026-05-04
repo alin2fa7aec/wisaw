@@ -4,9 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { isValidEmail } from "@wisaw/shared";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckCircle } from "@mynaui/icons-react";
+import KenAll from "ken-all";
 
 type SubmitState =
     | { status: "idle" }
@@ -64,6 +66,25 @@ export const Forms = () => {
     const [submitState, setSubmitState] = useState<SubmitState>({
         status: "idle",
     });
+
+    // --- 郵便番号から住所検索 ---
+    const [addressLookupError, setAddressLookupError] = useState("");
+    const lookupAddress = async () => {
+        setAddressLookupError("");
+        const code = postCode.trim().replace(/-/g, "");
+        if (!/^\d{7}$/.test(code)) {
+            setAddressLookupError("7桁の数字で入力してください");
+            return;
+        }
+        const results = await KenAll(code);
+        if (results.length === 0) {
+            setAddressLookupError("該当する住所が見つかりませんでした");
+            return;
+        }
+        const [pref, city, town] = results[0];
+        setPrefecture(pref);
+        setMunicipalities(city + town);
+    };
 
     // --- バリデーション ---
     const isEmailInvalid =
@@ -284,11 +305,27 @@ export const Forms = () => {
             {/* ── ご住所 ── */}
             <fieldset className="flex flex-col gap-2">
                 <Label className="font-semibold">ご住所</Label>
-                <Input
-                    placeholder="郵便番号(ハイフンなし)"
-                    value={postCode}
-                    onChange={(e) => setPostCode(e.target.value)}
-                />
+                <div className="flex gap-2">
+                    <Input
+                        className="flex-1"
+                        placeholder="郵便番号(ハイフンなし)"
+                        value={postCode}
+                        onChange={(e) => setPostCode(e.target.value)}
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={lookupAddress}
+                    >
+                        住所検索
+                    </Button>
+                </div>
+                {addressLookupError && (
+                    <p className="text-sm text-destructive">
+                        {addressLookupError}
+                    </p>
+                )}
                 <Input
                     placeholder="都道府県"
                     value={prefecture}

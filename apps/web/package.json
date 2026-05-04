@@ -21,6 +21,7 @@
         "@wisaw/shared": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "ken-all": "^0.4.2",
         "lucide-react": "^0.562.0",
         "radix-ui": "^1.4.3",
         "react": "^19.2.0",
