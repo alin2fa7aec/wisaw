@@ -175,6 +175,8 @@ const ANSWER_LABELS: Record<string, string> = {
     IntentionsToAttendCeremony: "挙式のご出欠",
     IntentionsToAttendReception: "披露宴のご出欠",
     Host: "どちら側のゲスト",
+    FamilyNameKanji: "姓（漢字）",
+    FirstNameKanji: "名（漢字）",
     FamilyNameKana: "姓（カナ）",
     FirstNameKana: "名（カナ）",
     FamilyNameEn: "姓（英語）",

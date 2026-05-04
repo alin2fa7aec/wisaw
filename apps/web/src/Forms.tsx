@@ -35,6 +35,8 @@ export const Forms = () => {
     const [host, setHost] = useState("");
 
     // 名前
+    const [familyNameKanji, setFamilyNameKanji] = useState("");
+    const [firstNameKanji, setFirstNameKanji] = useState("");
     const [familyNameKana, setFamilyNameKana] = useState("");
     const [firstNameKana, setFirstNameKana] = useState("");
     const [familyNameEn, setFamilyNameEn] = useState("");
@@ -104,6 +106,8 @@ export const Forms = () => {
                 IntentionsToAttendCeremony: intentionCeremony,
                 IntentionsToAttendReception: intentionReception,
                 Host: host,
+                FamilyNameKanji: familyNameKanji.trim(),
+                FirstNameKanji: firstNameKanji.trim(),
                 FamilyNameKana: familyNameKana.trim(),
                 FirstNameKana: firstNameKana.trim(),
                 FamilyNameEn: familyNameEn.trim(),
@@ -197,6 +201,23 @@ export const Forms = () => {
                         </div>
                     ))}
                 </RadioGroup>
+            </fieldset>
+
+            {/* ── お名前（漢字） ── */}
+            <fieldset className="flex flex-col gap-2">
+                <Label className="font-semibold">お名前（漢字）</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <Input
+                        placeholder="姓"
+                        value={familyNameKanji}
+                        onChange={(e) => setFamilyNameKanji(e.target.value)}
+                    />
+                    <Input
+                        placeholder="名"
+                        value={firstNameKanji}
+                        onChange={(e) => setFirstNameKanji(e.target.value)}
+                    />
+                </div>
             </fieldset>
 
             {/* ── お名前（カナ） ── */}
