@@ -1,0 +1,1 @@
+- [Nushell preference](feedback_nushell.md) — user runs nushell; manual commands must use nu syntax
