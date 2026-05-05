@@ -76,6 +76,25 @@ Resources:
                 Name: pk
                 Type: String
 
+    SesBounceSnsTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: wisaw-ses-bounce
+
+    BounceHandlerFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: apps/api/
+            Handler: dist/bounce-handler.handler
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !Ref SubmissionsTable
+            Events:
+                SnsEvent:
+                    Type: SNS
+                    Properties:
+                        Topic: !Ref SesBounceSnsTopic
+
     WebBucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -161,3 +180,6 @@ Outputs:
     CloudFrontDistributionId:
         Description: CloudFront distribution ID (for cache invalidation)
         Value: !Ref CloudFrontDistribution
+    SesBounceTopicArn:
+        Description: SNS topic ARN for SES bounce/complaint notifications
+        Value: !Ref SesBounceSnsTopic

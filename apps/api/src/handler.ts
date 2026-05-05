@@ -24,6 +24,16 @@ const ddb = endpoint
 
 const TABLE_NAME = process.env.TABLE_NAME!;
 
+async function isEmailSuppressed(email: string): Promise<boolean> {
+    const result = await ddb.send(
+        new GetItemCommand({
+            TableName: TABLE_NAME,
+            Key: marshall({ pk: `suppressed#${email.toLowerCase()}` }),
+        }),
+    );
+    return !!result.Item;
+}
+
 const SubmitSchema = z.object({
     idempotencyKey: z.string().uuid(), // ←これが肝
     email: z.string().email(),
@@ -131,18 +141,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             return json(500, { ok: false });
         }
 
-        // 2) メール送信
+        // 2) メール送信（バウンス/苦情アドレスには送信しない）
         let emailStatus = "PENDING";
-        try {
-            await sendEmail({
-                to: data.email,
-                subject: "【wisaw】ご回答ありがとうございます",
-                bodyText: buildMailBody(data),
-            });
-            emailStatus = "SENT";
-        } catch (err) {
-            safeLogError(err);
-            emailStatus = "FAILED";
+        const suppressed = await isEmailSuppressed(data.email);
+        if (suppressed) {
+            emailStatus = "SUPPRESSED";
+        } else {
+            try {
+                await sendEmail({
+                    to: data.email,
+                    subject: "【wisaw】ご回答ありがとうございます",
+                    bodyText: buildMailBody(data),
+                });
+                emailStatus = "SENT";
+            } catch (err) {
+                safeLogError(err);
+                emailStatus = "FAILED";
+            }
         }
 
         // 3) emailStatus を更新
