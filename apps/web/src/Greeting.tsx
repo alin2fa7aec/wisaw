@@ -2,21 +2,16 @@ import { ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /* ── 画像 ── */
-const imageModules = import.meta.glob<{ default: string }>(
-    "../assets/images/*.{jpg,jpeg,png,webp,avif}",
-    { eager: true },
-);
-const IMAGES = Object.entries(imageModules).map(([path, mod]) => ({
-    src: mod.default,
-    alt:
-        path
-            .split("/")
-            .pop()
-            ?.replace(/\.[^.]+$/, "") ?? "",
-}));
-const HERO_IMAGE = IMAGES[0];
-const PROFILE_IMAGE = IMAGES[1];
-const MESSAGE_BG_IMAGE = IMAGES[2];
+const IMG_BASE = "/images";
+const HERO_IMAGE = {
+    src: `${IMG_BASE}/that_pedestrian_crossing_photo.jpg`,
+    alt: "that_pedestrian_crossing_photo",
+};
+const PROFILE_IMAGE = { src: `${IMG_BASE}/cafe.jpg`, alt: "cafe" };
+const MESSAGE_BG_IMAGE = {
+    src: `${IMG_BASE}/that_pedestrian_crossing_painting.png`,
+    alt: "that_pedestrian_crossing_painting",
+};
 
 const VERTICAL_RL: React.CSSProperties = {
     writingMode: "vertical-rl",
