@@ -24,6 +24,9 @@ dist-ssr
 *.sw?
 .claude/local/*
 
+# large binary
+apps/web/assets/fonts/*
+
 # Local dev overrides
 env.json
 

@@ -34,7 +34,7 @@ const App = () => {
     };
 
     return (
-        <>
+        <div className="bg-background">
             <Button
                 variant="ghost"
                 size="icon"
@@ -72,8 +72,8 @@ const App = () => {
                 </DrawerContent>
             </Drawer>
 
-            <div className="flex flex-col h-1/2">
-                <Card className="shadow-none border-none">
+            <div className="flex flex-col h-1/2 bg-transparent">
+                <Card className="shadow-none border-none bg-transparent">
                     <CardContent className="pt-6">
                         <Suspense
                             fallback={
@@ -86,7 +86,15 @@ const App = () => {
                                 key={activeContent}
                                 className="animate-fade-in"
                             >
-                                {activeContent === "greeting" && <Greeting />}
+                                {activeContent === "greeting" && (
+                                    <Greeting
+                                        onNavigate={(target) =>
+                                            setActiveContent(
+                                                target as ContentKey,
+                                            )
+                                        }
+                                    />
+                                )}
                                 {activeContent === "forms" && <Forms />}
                                 {activeContent === "dinosaur-game" && (
                                     <DinosaurGame />
@@ -96,7 +104,7 @@ const App = () => {
                     </CardContent>
                 </Card>
             </div>
-        </>
+        </div>
     );
 };
 

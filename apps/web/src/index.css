@@ -1,9 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+    font-family: "BizinGothic";
+    src: url("../assets/fonts/BizinGothicNF-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    --font-sans: "BizinGothic", sans-serif;
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
@@ -43,56 +52,67 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+    --color-text-soft: var(--color-text-soft);
+    --color-text-mute: var(--color-text-mute);
+    --color-surface-alt: var(--color-surface-alt);
 }
 
 :root {
     --radius: 0.625rem;
 
-    --background: oklch(0.97 0 0);
-    --foreground: oklch(0.321 0 0);
+    /* サンプルCSS準拠: #f5f2ed オフホワイト */
+    --background: #f5f2ed;
+    --foreground: #4a4541;
 
-    --card: oklch(0.97 0 0);
-    --card-foreground: oklch(0.321 0 0);
+    --card: #ffffff;
+    --card-foreground: #4a4541;
 
-    --popover: oklch(0.97 0 0);
-    --popover-foreground: oklch(0.321 0 0);
+    --popover: #ffffff;
+    --popover-foreground: #4a4541;
 
-    --primary: oklch(0.508 0.104 301.24);
-    --primary-foreground: oklch(0.97 0 0);
+    /* メインピンク #e8b4b8 */
+    --primary: #e8b4b8;
+    --primary-foreground: #ffffff;
 
-    --secondary: oklch(0.961 0 0);
-    --secondary-foreground: oklch(0.321 0 0);
+    --secondary: #ebe6df;
+    --secondary-foreground: #4a4541;
 
-    --muted: oklch(0.961 0 0);
-    --muted-foreground: oklch(0.531 0 0);
+    --muted: #ebe6df;
+    --muted-foreground: #8a807a;
 
-    --accent: oklch(0.937 0.011 316.491);
-    --accent-foreground: oklch(0.321 0 0);
+    --accent: #f0d4d6;
+    --accent-foreground: #4a4541;
 
-    --destructive: oklch(0.74 0.129 26.408);
-    --success: oklch(0.586 0.163 142.495);
+    --destructive: #c44;
+    --success: #6a9;
 
-    --border: oklch(0.855 0.015 254.617);
-    --input: oklch(0.855 0.015 254.617);
-    --ring: oklch(0.62 0.171 299.912);
+    --border: #d8d2cb;
+    --input: #d8d2cb;
+    --ring: #e8b4b8;
 
-    --chart-1: oklch(0.551 0.153 254.169);
-    --chart-2: oklch(0.572 0.153 138.254);
-    --chart-3: oklch(0.504 0.152 26.965);
-    --chart-4: oklch(0.591 0.213 327.859);
-    --chart-5: oklch(0.761 0.155 88.15);
+    --chart-1: #e8b4b8;
+    --chart-2: #d8d2cb;
+    --chart-3: #8a807a;
+    --chart-4: #f0d4d6;
+    --chart-5: #b8aea7;
 
-    --sidebar: oklch(0.961 0 0);
-    --sidebar-foreground: oklch(0.321 0 0);
+    --sidebar: #ebe6df;
+    --sidebar-foreground: #4a4541;
 
-    --sidebar-primary: oklch(0.508 0.104 301.24);
-    --sidebar-primary-foreground: oklch(0.97 0 0);
+    --sidebar-primary: #e8b4b8;
+    --sidebar-primary-foreground: #ffffff;
 
-    --sidebar-accent: oklch(0.937 0.011 316.491);
-    --sidebar-accent-foreground: oklch(0.321 0 0);
+    --sidebar-accent: #f0d4d6;
+    --sidebar-accent-foreground: #4a4541;
 
-    --sidebar-border: oklch(0.855 0.015 254.617);
-    --sidebar-ring: oklch(0.62 0.171 299.912);
+    --sidebar-border: #d8d2cb;
+    --sidebar-ring: #e8b4b8;
+
+    /* Wedding-specific tokens */
+    --color-text-soft: #8a807a;
+    --color-text-mute: #b8aea7;
+    --color-surface-alt: #ebe6df;
+    --shadow-image: 4px 4px 12px rgba(0, 0, 0, 0.41);
 }
 
 .dark {
@@ -135,7 +155,9 @@
         @apply border-border outline-ring/50;
     }
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-light leading-relaxed antialiased;
+        font-size: 0.875rem;
+        -moz-osx-font-smoothing: grayscale;
     }
 }
 
