@@ -26,6 +26,7 @@ dist-ssr
 
 # large binary
 apps/web/assets/fonts/*
+apps/web/assets/images/*
 
 # Local dev overrides
 env.json

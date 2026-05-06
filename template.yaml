@@ -120,6 +120,31 @@ Resources:
                           StringEquals:
                               AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
+    ImageBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Sub "${DomainName}-images"
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+
+    ImageBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref ImageBucket
+            PolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: s3:GetObject
+                      Resource: !Sub "${ImageBucket.Arn}/*"
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
     CloudFrontOAC:
         Type: AWS::CloudFront::OriginAccessControl
         Properties:
@@ -147,6 +172,17 @@ Resources:
                       OriginAccessControlId: !Ref CloudFrontOAC
                       S3OriginConfig:
                           OriginAccessIdentity: ""
+                    - Id: ImageS3Origin
+                      DomainName: !GetAtt ImageBucket.RegionalDomainName
+                      OriginAccessControlId: !Ref CloudFrontOAC
+                      S3OriginConfig:
+                          OriginAccessIdentity: ""
+                CacheBehaviors:
+                    - PathPattern: "images/*"
+                      TargetOriginId: ImageS3Origin
+                      ViewerProtocolPolicy: redirect-to-https
+                      CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                      Compress: true
                 DefaultCacheBehavior:
                     TargetOriginId: S3Origin
                     ViewerProtocolPolicy: redirect-to-https
@@ -180,6 +216,9 @@ Outputs:
     CloudFrontDistributionId:
         Description: CloudFront distribution ID (for cache invalidation)
         Value: !Ref CloudFrontDistribution
+    ImageBucketName:
+        Description: S3 bucket for image assets
+        Value: !Ref ImageBucket
     SesBounceTopicArn:
         Description: SNS topic ARN for SES bounce/complaint notifications
         Value: !Ref SesBounceSnsTopic
