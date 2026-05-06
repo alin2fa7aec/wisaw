@@ -218,6 +218,20 @@
     animation: fade-in 3000ms ease-out both;
 }
 
+@keyframes petal-burst {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(0.3);
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .separator-animate,
     .separator-before-animate {
