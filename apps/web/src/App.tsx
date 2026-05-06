@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
+import { TapPetals } from "@/components/TapPetals";
 
 const Greeting = lazy(() =>
     import("./Greeting").then((m) => ({ default: m.Greeting })),
@@ -34,6 +35,7 @@ const App = () => {
     };
 
     return (
+        <TapPetals>
         <div className="bg-background">
             <Button
                 variant="ghost"
@@ -105,6 +107,7 @@ const App = () => {
                 </Card>
             </div>
         </div>
+        </TapPetals>
     );
 };
 
