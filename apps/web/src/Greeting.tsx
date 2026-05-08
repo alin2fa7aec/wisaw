@@ -311,7 +311,7 @@ export const Greeting = ({
                         ].map((item, i, arr) => (
                             <li
                                 key={item.time + item.title}
-                                className="grid grid-cols-[auto_10px_1fr] gap-x-3 relative pb-2"
+                                className="grid grid-cols-[auto_14px_1fr] gap-x-3 relative pb-2"
                             >
                                 {/* 時刻 */}
                                 <div className="flex items-center h-[1.2em]">
