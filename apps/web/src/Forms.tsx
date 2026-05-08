@@ -91,8 +91,7 @@ export const Forms = () => {
     const idempotencyKeyRef = useRef(crypto.randomUUID());
     const submittingRef = useRef(false);
 
-    const [intentionCeremony, setIntentionCeremony] = useState("");
-    const [intentionReception, setIntentionReception] = useState("");
+    const [attendance, setAttendance] = useState("");
     const [host, setHost] = useState("");
 
     const [familyNameKanji, setFamilyNameKanji] = useState("");
@@ -143,8 +142,7 @@ export const Forms = () => {
         email.trim().length > 0 && !isValidEmail(email.trim());
 
     const canSubmit =
-        intentionCeremony !== "" &&
-        intentionReception !== "" &&
+        attendance !== "" &&
         host !== "" &&
         familyNameKana.trim().length > 0 &&
         firstNameKana.trim().length > 0 &&
@@ -176,8 +174,7 @@ export const Forms = () => {
             idempotencyKey: idempotencyKeyRef.current,
             email: email.trim(),
             answers: {
-                IntentionsToAttendCeremony: intentionCeremony,
-                IntentionsToAttendReception: intentionReception,
+                Attendance: attendance,
                 Host: host,
                 FamilyNameKanji: familyNameKanji.trim(),
                 FirstNameKanji: firstNameKanji.trim(),
@@ -276,36 +273,18 @@ export const Forms = () => {
 
                     <div className="flex flex-col gap-6">
                         <fieldset className="flex flex-col gap-3">
-                            <FieldLabel required>挙式</FieldLabel>
+                            <FieldLabel required>ご出欠</FieldLabel>
                             <RadioGroup
-                                value={intentionCeremony}
-                                onValueChange={setIntentionCeremony}
+                                value={attendance}
+                                onValueChange={setAttendance}
                                 className="flex justify-center gap-8"
                             >
                                 {["ご出席", "ご欠席", "保留"].map((v) => (
                                     <RadioButton
                                         key={v}
                                         value={v}
-                                        id={`ceremony-${v}`}
-                                        selected={intentionCeremony === v}
-                                    />
-                                ))}
-                            </RadioGroup>
-                        </fieldset>
-
-                        <fieldset className="flex flex-col gap-3">
-                            <FieldLabel required>披露宴</FieldLabel>
-                            <RadioGroup
-                                value={intentionReception}
-                                onValueChange={setIntentionReception}
-                                className="flex justify-center gap-8"
-                            >
-                                {["ご出席", "ご欠席", "保留"].map((v) => (
-                                    <RadioButton
-                                        key={v}
-                                        value={v}
-                                        id={`reception-${v}`}
-                                        selected={intentionReception === v}
+                                        id={`attendance-${v}`}
+                                        selected={attendance === v}
                                     />
                                 ))}
                             </RadioGroup>

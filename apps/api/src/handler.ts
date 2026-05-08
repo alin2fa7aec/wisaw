@@ -187,8 +187,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 };
 
 const ANSWER_LABELS: Record<string, string> = {
-    IntentionsToAttendCeremony: "挙式のご出欠",
-    IntentionsToAttendReception: "披露宴のご出欠",
+    Attendance: "ご出欠",
     Host: "どちら側のゲスト",
     FamilyNameKanji: "姓（漢字）",
     FirstNameKanji: "名（漢字）",
