@@ -35,7 +35,7 @@ async function isEmailSuppressed(email: string): Promise<boolean> {
 }
 
 const SubmitSchema = z.object({
-    idempotencyKey: z.string().uuid(), // ←これが肝
+    idempotencyKey: z.string().uuid(),
     email: z.string().email(),
     answers: z.record(z.string(), z.string().max(2000)),
 });
@@ -87,7 +87,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const pk = `submission#${data.idempotencyKey}`;
         const ph = payloadHash(data.email, data.answers);
 
-        // 1) まず保存 (冪等：同じpkが既にあれば弾く) 
+        // 1) まず保存 (冪等: 同じpkが既にあれば弾く)
         try {
             await ddb.send(
                 new PutItemCommand({
@@ -104,7 +104,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                 }),
             );
         } catch (err: any) {
-            // 既に存在 = リトライ/二重送信の可能性 → 既存を返して idempotent にする
+            // 既に存在 = リトライ/二重送信の可能性 -> 既存を返して idempotent にする
             if (err?.name === "ConditionalCheckFailedException") {
                 const got = await ddb.send(
                     new GetItemCommand({
@@ -119,14 +119,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                     const existingHash = item.payloadHash as string | undefined;
 
                     if (existingHash && existingHash !== ph) {
-                        // 同じ冪等キーで内容が違う → 409
+                        // 同じ冪等キーで内容が違う -> 409
                         return json(409, {
                             ok: false,
                             error: "idempotency conflict",
                         });
                     }
 
-                    // 一致 (または旧データにhashが無い) → 既存を返す
+                    // 一致 (または旧データにhashが無い) -> 既存を返す
                     return json(200, {
                         ok: true,
                         id: data.idempotencyKey,

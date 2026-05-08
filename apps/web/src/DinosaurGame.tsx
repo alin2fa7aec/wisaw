@@ -127,7 +127,7 @@ export const DinosaurGame = () => {
             // 横向き中は入力を無視 (縦固定前提) 
             if (isLandscape) return;
 
-            // 待機中→ゲーム開始
+            // 待機中 -> ゲーム開始
             if (g.waitingToStart) {
                 g.waitingToStart = false;
                 g.running = true;
@@ -136,12 +136,12 @@ export const DinosaurGame = () => {
             }
 
             if (!g.running && g.gameOver) {
-                // 1タップ目：GO表示を確定→「再開待ち」に移行
+                // 1タップ目: GO表示を確定 -> 「再開待ち」に移行
                 if (g.gameOverTapStage === 1) {
                     g.gameOverTapStage = 2;
                     return;
                 }
-                // 2タップ目：リスタート
+                // 2タップ目: リスタート
                 if (g.gameOverTapStage === 2) {
                     reset();
                     return;
@@ -166,7 +166,7 @@ export const DinosaurGame = () => {
             }
         };
 
-        // iOSでの謎スクロール/拡大対策：passive:falseでpreventDefault可能にする
+        // iOSでの謎スクロール/拡大対策: passive:falseでpreventDefault可能にする
         const onTouchMove = (e: TouchEvent) => e.preventDefault();
 
         window.addEventListener("resize", resize, { passive: true });
@@ -284,7 +284,7 @@ export const DinosaurGame = () => {
             let dt = (ts - g.lastT) / 1000;
             g.lastT = ts;
 
-            // タブ復帰や負荷でdtが巨大化→ワープ防止
+            // タブ復帰や負荷でdtが巨大化 -> ワープ防止
             dt = Math.min(dt, 1 / 30);
 
             // 横向きなら進行停止 (描画だけはする) 

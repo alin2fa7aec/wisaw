@@ -40,16 +40,16 @@ WISAW とは...
 memo (minimul structure from ChatGPT)
 ```
 [Browser]
-   ↓ HTTPS
+   | HTTPS
 CloudFront
-   ↓
+   |
 S3 (Frontend)
-   ↓
+   |
 API Gateway
-   ↓
+   |
 Lambda (TypeScript)
-   ↓
+   |
 DynamoDB
-   ↓
+   |
 SES
 ```
