@@ -295,7 +295,7 @@ export const Greeting = ({
                             {
                                 time: "11:00",
                                 title: "披露宴",
-                                text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付付近にて皆さまをお待ちしております\n朝早くなりますが ぜひ10時からお越しください",
+                                text: "TBD",
                                 illust: true,
                             },
                             {
@@ -306,7 +306,7 @@ export const Greeting = ({
                             {
                                 time: "14:00",
                                 title: "お見送り",
-                                text: "結婚にあたり 大切な皆さまの前で誓いを立てます\n温かく見守っていただけますと幸いです",
+                                text: "TBD",
                             },
                         ].map((item, i, arr) => (
                             <li
