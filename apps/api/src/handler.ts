@@ -87,7 +87,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const pk = `submission#${data.idempotencyKey}`;
         const ph = payloadHash(data.email, data.answers);
 
-        // 1) まず保存（冪等：同じpkが既にあれば弾く）
+        // 1) まず保存 (冪等：同じpkが既にあれば弾く) 
         try {
             await ddb.send(
                 new PutItemCommand({
@@ -126,7 +126,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                         });
                     }
 
-                    // 一致（または旧データにhashが無い）→ 既存を返す
+                    // 一致 (または旧データにhashが無い) → 既存を返す
                     return json(200, {
                         ok: true,
                         id: data.idempotencyKey,
@@ -141,7 +141,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             return json(500, { ok: false });
         }
 
-        // 2) メール送信（バウンス/苦情アドレスには送信しない）
+        // 2) メール送信 (バウンス/苦情アドレスには送信しない) 
         let emailStatus = "PENDING";
         const suppressed = await isEmailSuppressed(data.email);
         if (suppressed) {

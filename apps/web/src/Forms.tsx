@@ -535,7 +535,7 @@ export const Forms = () => {
 
                                 <div>
                                     <p className="text-[0.7rem] text-text-soft mb-3">
-                                        特定原材料（該当するものを選択）
+                                        特定原材料 (該当するものを選択) 
                                     </p>
                                     <div className="grid grid-cols-4 gap-2">
                                         {SPECIFIC_RAW_MATERIALS.map((item) => (

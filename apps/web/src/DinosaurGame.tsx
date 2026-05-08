@@ -16,10 +16,10 @@ const GO_INPUT_COOLDOWN_MS = 250;
 export const DinosaurGame = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    // 画面が横向きならブロック（「縦固定」を無理やり強制はできない）
+    // 画面が横向きならブロック (「縦固定」を無理やり強制はできない) 
     const [isLandscape, setIsLandscape] = useState(false);
 
-    // ゲーム状態はすべてrefに閉じ込める（React stateで毎フレーム更新とか論外）
+    // ゲーム状態はすべてrefに閉じ込める (React stateで毎フレーム更新とか論外) 
     const game = useRef({
         dpr: 1,
         scale: 1,
@@ -78,7 +78,7 @@ export const DinosaurGame = () => {
             const cssW = window.innerWidth;
             const cssH = window.innerHeight;
 
-            // DPR対応（ここをサボるとボケる/当たり判定感が崩れる）
+            // DPR対応 (ここをサボるとボケる/当たり判定感が崩れる) 
             g.dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
             canvas.width = Math.floor(cssW * g.dpr);
             canvas.height = Math.floor(cssH * g.dpr);
@@ -124,7 +124,7 @@ export const DinosaurGame = () => {
             const now = performance.now();
             if (now < g.inputLockUntil) return;
 
-            // 横向き中は入力を無視（縦固定前提）
+            // 横向き中は入力を無視 (縦固定前提) 
             if (isLandscape) return;
 
             // 待機中→ゲーム開始
@@ -146,7 +146,7 @@ export const DinosaurGame = () => {
                     reset();
                     return;
                 }
-                // 状態が壊れてたら強制リセット（甘えない）
+                // 状態が壊れてたら強制リセット (甘えない) 
                 reset();
                 return;
             }
@@ -212,7 +212,7 @@ export const DinosaurGame = () => {
             for (const ob of g.obstacles) {
                 ob.x -= g.speed * dt;
 
-                // 当たり判定は少し甘く（スマホでストレスを増やすな）
+                // 当たり判定は少し甘く (スマホでストレスを増やすな) 
                 const pad = 3;
                 const hit = aabb(
                     px + pad,
@@ -261,7 +261,7 @@ export const DinosaurGame = () => {
                 ctx.fillRect(ob.x, GROUND_Y - ob.h, ob.w, ob.h);
             }
 
-            // UI text（world座標で描く。端末が変わっても相対サイズは一定）
+            // UI text (world座標で描く。端末が変わっても相対サイズは一定) 
             ctx.fillStyle = "#111";
             ctx.font = "14px system-ui";
             ctx.fillText(`SCORE ${Math.floor(g.tAlive * 10)}`, 10, 18);
@@ -287,7 +287,7 @@ export const DinosaurGame = () => {
             // タブ復帰や負荷でdtが巨大化→ワープ防止
             dt = Math.min(dt, 1 / 30);
 
-            // 横向きなら進行停止（描画だけはする）
+            // 横向きなら進行停止 (描画だけはする) 
             if (!isLandscape) update(dt);
             render();
 
@@ -308,7 +308,7 @@ export const DinosaurGame = () => {
         <div className="w-full">
             <div
                 className="inset-0 overflow-hidden overscroll-none touch-none select-none"
-                // 追加で保険（Tailwindのtouch-noneと同等だが明示）
+                // 追加で保険 (Tailwindのtouch-noneと同等だが明示) 
                 style={{ touchAction: "none" }}
                 onPointerDown={(e) => {
                     // ここでpreventDefaultしないと端末によっては変な挙動が混ざる
@@ -342,7 +342,7 @@ export const DinosaurGame = () => {
                     </div>
                 )}
 
-                {/* Reactのpointerdownからゲームへ通知する受け口（イベントで接続） */}
+                {/* Reactのpointerdownからゲームへ通知する受け口 (イベントで接続)  */}
                 <JumpBridge />
             </div>
         </div>
@@ -351,7 +351,7 @@ export const DinosaurGame = () => {
 
 /**
  * App本体のeffectスコープ外にあるpointerdownから、ゲームロジックに安全に渡すためのブリッジ。
- * （Reactの再レンダでハンドラ参照が壊れる系の事故を避ける）
+ *  (Reactの再レンダでハンドラ参照が壊れる系の事故を避ける) 
  */
 function JumpBridge() {
     useEffect(() => {
