@@ -287,6 +287,12 @@ export const Greeting = ({
                                 accent: true,
                             },
                             {
+                                time: "10:45",
+                                title: "受付締切",
+                                text: "スムーズな進行のため\n10時45分までに受付をお済ませくださいますよう\nお願いいたします\nやむを得ず遅れる場合は 会場スタッフにお声がけください",
+                                highlight: true,
+                            },
+                            {
                                 time: "11:00",
                                 title: "披露宴",
                                 text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付付近にて皆さまをお待ちしております\n朝早くなりますが ぜひ10時からお越しください",
@@ -309,7 +315,9 @@ export const Greeting = ({
                             >
                                 {/* 時刻 */}
                                 <div className="flex items-center h-[1.2em]">
-                                    <span className="text-[0.85rem leading-none">
+                                    <span
+                                        className={`text-[0.85rem] leading-none ${item.highlight ? "font-semibold text-primary" : ""}`}
+                                    >
                                         {item.time}
                                     </span>
                                 </div>
@@ -317,7 +325,9 @@ export const Greeting = ({
                                 {/* ドット + 縦線 */}
                                 <div className="relative flex flex-col items-center">
                                     <div className="flex items-center h-[1.2em]">
-                                        <span className="w-2.5 h-2.5 shrink-0 rounded-full bg-primary border-2 border-background shadow-[0_0_0_1px_var(--primary)] z-10" />
+                                        <span
+                                            className={`shrink-0 rounded-full z-10 ${item.highlight ? "w-3.5 h-3.5 bg-primary border-2 border-background shadow-[0_0_0_2px_var(--primary),0_0_8px_var(--primary)]" : "w-2.5 h-2.5 bg-primary border-2 border-background shadow-[0_0_0_1px_var(--primary)]"}`}
+                                        />
                                     </div>
                                     {i < arr.length - 1 && (
                                         <span className="absolute top-3 -bottom-3 left-1/2 -translate-x-1/2 w-px bg-border" />
@@ -326,11 +336,15 @@ export const Greeting = ({
 
                                 {/* コンテンツ */}
                                 <div>
-                                    <h3 className="text-[0.85rem] mb-2">
+                                    <h3
+                                        className={`text-[0.85rem] mb-2 ${item.highlight ? "font-semibold" : ""}`}
+                                    >
                                         {item.title}
                                         <span className="block w-75/100 h-px bg-border" />
                                     </h3>
-                                    <p className="text-[0.5rem] leading-[1.8] text-text-soft whitespace-pre-line">
+                                    <p
+                                        className={`text-[0.5rem] leading-[1.8] whitespace-pre-line ${item.highlight ? "text-foreground font-medium" : "text-text-soft"}`}
+                                    >
                                         {item.text}
                                     </p>
                                     {item.illust && (
