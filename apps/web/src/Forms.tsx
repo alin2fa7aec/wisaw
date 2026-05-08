@@ -144,6 +144,8 @@ export const Forms = () => {
     const canSubmit =
         attendance !== "" &&
         host !== "" &&
+        familyNameKanji.trim().length > 0 &&
+        firstNameKanji.trim().length > 0 &&
         familyNameKana.trim().length > 0 &&
         firstNameKana.trim().length > 0 &&
         familyNameEn.trim().length > 0 &&
@@ -319,6 +321,7 @@ export const Forms = () => {
                     <div className="flex flex-col gap-5">
                         <fieldset className="flex flex-col gap-2">
                             <FieldLabel>漢字</FieldLabel>
+                            <span className="text-primary text-base leading-none">*</span>
                             <div className="grid grid-cols-2 gap-2">
                                 <Input
                                     placeholder="姓"
