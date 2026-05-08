@@ -441,6 +441,7 @@ export const Forms = () => {
                             <div className="flex gap-2">
                                 <Input
                                     className="flex-1"
+                                    inputMode="numeric"
                                     placeholder="1710031"
                                     value={postCode}
                                     onChange={(e) =>
