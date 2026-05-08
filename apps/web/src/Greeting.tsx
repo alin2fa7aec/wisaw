@@ -80,7 +80,7 @@ export const Greeting = ({
                             <img
                                 src={HERO_IMAGE.src}
                                 alt={HERO_IMAGE.alt}
-                                className="h-auto object-cover shadow--image"
+                                className="h-auto object-cover shadow-image"
                             />
                         ) : (
                             <div className="w-full h-full bg-linear-to-br from-muted to-text-mute" />

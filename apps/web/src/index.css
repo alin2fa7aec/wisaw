@@ -55,6 +55,7 @@
     --color-text-soft: var(--color-text-soft);
     --color-text-mute: var(--color-text-mute);
     --color-surface-alt: var(--color-surface-alt);
+    --shadow-image: 4px 4px 12px rgba(0, 0, 0, 0.41);
 }
 
 :root {
@@ -112,7 +113,6 @@
     --color-text-soft: #8a807a;
     --color-text-mute: #b8aea7;
     --color-surface-alt: #ebe6df;
-    --shadow-image: 4px 4px 12px rgba(0, 0, 0, 0.41);
 }
 
 .dark {
