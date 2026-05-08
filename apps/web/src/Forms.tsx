@@ -92,6 +92,7 @@ export const Forms = () => {
     const submittingRef = useRef(false);
 
     const [attendance, setAttendance] = useState("");
+    const [nameFieldTouched, setNameFieldTouched] = useState(false);
     const [host, setHost] = useState("");
 
     const [familyNameKanji, setFamilyNameKanji] = useState("");
@@ -314,13 +315,29 @@ export const Forms = () => {
                     </div>
                 </section>
 
-                {/* ═══ 2. お名前 ═══ */}
+                {/* ═══ 2. ご芳名 ═══ */}
                 <section>
-                    <SectionHeader number="02" title="お名前" />
+                    <div className="flex items-center gap-3 mb-6">
+                        <span className="text-primary text-lg">02</span>
+                        <span className="flex-1 h-px bg-border" />
+                        <span
+                            className="text-sm text-foreground inline-block overflow-hidden whitespace-nowrap transition-all duration-700"
+                            style={{
+                                width: nameFieldTouched ? "1em" : "3em",
+                                direction: "rtl",
+                            }}
+                        >
+                            <span style={{ direction: "ltr", unicodeBidi: "bidi-override" }}>
+                                ご芳名
+                            </span>
+                        </span>
+                    </div>
 
-                    <div className="flex flex-col gap-5">
+                    <div
+                        className="flex flex-col gap-5"
+                        onFocus={() => setNameFieldTouched(true)}
+                    >
                         <fieldset className="flex flex-col gap-2">
-                            <FieldLabel>漢字</FieldLabel>
                             <span className="text-primary text-base leading-none">*</span>
                             <div className="grid grid-cols-2 gap-2">
                                 <Input
@@ -361,7 +378,7 @@ export const Forms = () => {
                         </fieldset>
 
                         <fieldset className="flex flex-col gap-2">
-                            <FieldLabel required>English</FieldLabel>
+                            <FieldLabel required>Alphabetic</FieldLabel>
                             <div className="grid grid-cols-2 gap-2">
                                 <Input
                                     placeholder="Family Name"
