@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { Github, Instagram } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -459,6 +460,36 @@ export const Home = ({
                 <p className="text-xs text-text-soft">
                     99月99日(極) 迄にご回答いただければ幸に存じます
                 </p>
+
+                <div className="flex items-center justify-center gap-8 mt-8">
+                    <a
+                        href="https://github.com/alin2fa7aec/wisaw"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 text-text-soft hover:text-foreground transition-colors"
+                    >
+                        <Github className="size-5" />
+                        <span className="text-[0.5rem]">WISAW</span>
+                    </a>
+                    <a
+                        href="https://www.instagram.com/alin2fa7aec/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 text-text-soft hover:text-foreground transition-colors"
+                    >
+                        <Instagram className="size-5" />
+                        <span className="text-[0.5rem]">AKIRA</span>
+                    </a>
+                    <a
+                        href="https://www.instagram.com/saki_gt.oc/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 text-text-soft hover:text-foreground transition-colors"
+                    >
+                        <Instagram className="size-5" />
+                        <span className="text-[0.5rem]">SAKI</span>
+                    </a>
+                </div>
             </footer>
         </div>
     );
