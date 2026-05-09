@@ -62,9 +62,9 @@ const SectionTitle = ({
 };
 
 /* ══════════════════════════════════════════════
-   Greeting
+   Home
    ══════════════════════════════════════════════ */
-export const Greeting = ({
+export const Home = ({
     onNavigate,
 }: {
     onNavigate?: (target: string) => void;
@@ -451,7 +451,7 @@ export const Greeting = ({
                 <button
                     type="button"
                     className="inline-block px-16 py-3 bg-card border border-border text-xs text-foreground mb-6 hover:bg-accent hover:border-primary transition-colors"
-                    onClick={() => onNavigate?.("forms")}
+                    onClick={() => onNavigate?.("rsvp")}
                 >
                     ご回答のほどお願いします
                 </button>

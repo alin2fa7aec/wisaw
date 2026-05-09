@@ -87,7 +87,7 @@ const FieldLabel = ({
     </Label>
 );
 
-export const Forms = () => {
+export const Rsvp = () => {
     const idempotencyKeyRef = useRef(crypto.randomUUID());
     const submittingRef = useRef(false);
 

@@ -9,28 +9,28 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
-import { X, Home, Mail, Controller } from "@mynaui/icons-react";
+import { X, Home as HomeIcon, Mail, Controller } from "@mynaui/icons-react";
 import type { ComponentType, SVGAttributes } from "react";
 import { TapPetals } from "@/components/TapPetals";
 
-const Greeting = lazy(() =>
-    import("./Greeting").then((m) => ({ default: m.Greeting })),
+const HomePage = lazy(() =>
+    import("./Home").then((m) => ({ default: m.Home })),
 );
-const Forms = lazy(() => import("./Forms").then((m) => ({ default: m.Forms })));
+const Rsvp = lazy(() => import("./Rsvp").then((m) => ({ default: m.Rsvp })));
 import { DinosaurGame } from "./DinosaurGame";
 
-type ContentKey = "greeting" | "forms" | "dinosaur-game";
+type ContentKey = "home" | "rsvp" | "dinosaur-game";
 
 type MynaIcon = ComponentType<SVGAttributes<SVGElement>>;
 
 const contentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
-    { key: "greeting", label: "Home", icon: Home },
-    { key: "forms", label: "RSVP", icon: Mail },
+    { key: "home", label: "Home", icon: HomeIcon },
+    { key: "rsvp", label: "RSVP", icon: Mail },
     { key: "dinosaur-game", label: "Dinosaur Game", icon: Controller },
 ];
 
 const App = () => {
-    const [activeContent, setActiveContent] = useState<ContentKey>("greeting");
+    const [activeContent, setActiveContent] = useState<ContentKey>("home");
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     const handleSelect = (key: ContentKey) => {
@@ -101,8 +101,8 @@ const App = () => {
                                 key={activeContent}
                                 className="animate-fade-in"
                             >
-                                {activeContent === "greeting" && (
-                                    <Greeting
+                                {activeContent === "home" && (
+                                    <HomePage
                                         onNavigate={(target) =>
                                             setActiveContent(
                                                 target as ContentKey,
@@ -110,7 +110,7 @@ const App = () => {
                                         }
                                     />
                                 )}
-                                {activeContent === "forms" && <Forms />}
+                                {activeContent === "rsvp" && <Rsvp />}
                                 {activeContent === "dinosaur-game" && (
                                     <DinosaurGame />
                                 )}
