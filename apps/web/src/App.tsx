@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
+import { X } from "@mynaui/icons-react";
 import { TapPetals } from "@/components/TapPetals";
 
 const Greeting = lazy(() =>
@@ -54,6 +55,14 @@ const App = () => {
                 <DrawerContent>
                     <DrawerHeader>
                         <DrawerTitle>コンテンツ</DrawerTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-4 right-4"
+                            onClick={() => setDrawerOpen(false)}
+                        >
+                            <X className="size-5" />
+                        </Button>
                     </DrawerHeader>
                     <nav className="flex flex-col gap-1 p-4">
                         {contentItems.map((item) => (
