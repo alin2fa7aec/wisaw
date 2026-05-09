@@ -124,7 +124,7 @@ export const Greeting = ({
 
             {/* ═══ 2. MESSAGE ═══ */}
             <FadeIn>
-                <section className="relative mx-9">
+                <section className="relative ml-12 mr-6">
                     {/* 背景 */}
                     <div
                         className="absolute inset-0 z-0 opacity-85"
