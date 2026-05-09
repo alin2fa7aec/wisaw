@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
-import { X } from "@mynaui/icons-react";
+import { X, Home, Mail, Controller } from "@mynaui/icons-react";
+import type { ComponentType, SVGAttributes } from "react";
 import { TapPetals } from "@/components/TapPetals";
 
 const Greeting = lazy(() =>
@@ -20,10 +21,12 @@ import { DinosaurGame } from "./DinosaurGame";
 
 type ContentKey = "greeting" | "forms" | "dinosaur-game";
 
-const contentItems: { key: ContentKey; label: string }[] = [
-    { key: "greeting", label: "Greeting" },
-    { key: "forms", label: "Forms" },
-    { key: "dinosaur-game", label: "Dinosaur Game" },
+type MynaIcon = ComponentType<SVGAttributes<SVGElement>>;
+
+const contentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
+    { key: "greeting", label: "Home", icon: Home },
+    { key: "forms", label: "RSVP", icon: Mail },
+    { key: "dinosaur-game", label: "Dinosaur Game", icon: Controller },
 ];
 
 const App = () => {
@@ -73,9 +76,10 @@ const App = () => {
                                         ? "secondary"
                                         : "ghost"
                                 }
-                                className="justify-start"
+                                className="justify-start gap-2"
                                 onClick={() => handleSelect(item.key)}
                             >
+                                <item.icon className="size-4" />
                                 {item.label}
                             </Button>
                         ))}

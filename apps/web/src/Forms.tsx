@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { isValidEmail } from "@wisaw/shared";
 import { Spinner } from "@/components/ui/spinner";
-import { CheckCircle } from "@mynaui/icons-react";
+import { CheckCircle, Send } from "@mynaui/icons-react";
 import KenAll from "ken-all";
 
 type SubmitState =
@@ -611,7 +611,10 @@ export const Forms = () => {
                                 送信中…
                             </span>
                         ) : (
-                            "送信する"
+                            <span className="flex items-center justify-center gap-2">
+                                <Send className="size-4" />
+                                送信する
+                            </span>
                         )}
                     </button>
 
