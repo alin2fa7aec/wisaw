@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { isValidEmail } from "@wisaw/shared";
 import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 import { CheckCircle, Send } from "@mynaui/icons-react";
 import KenAll from "ken-all";
 
@@ -599,24 +600,24 @@ export const Rsvp = () => {
                 <div className="flex flex-col items-center gap-4 pt-4">
                     <span className="w-3/5 h-px bg-border" />
 
-                    <button
-                        type="button"
-                        className="w-full py-3.5 bg-primary text-primary-foreground text-xs tracking-wider disabled:opacity-40 transition-opacity"
+                    <Button
+                        size="lg"
+                        className="w-full py-3.5 text-xs tracking-wider"
                         disabled={!canSubmit}
                         onClick={handleSubmit}
                     >
                         {submitState.status === "submitting" ? (
-                            <span className="flex items-center justify-center gap-2">
+                            <>
                                 <Spinner />
                                 送信中…
-                            </span>
+                            </>
                         ) : (
-                            <span className="flex items-center justify-center gap-2">
+                            <>
                                 <Send className="size-4" />
                                 送信する
-                            </span>
+                            </>
                         )}
-                    </button>
+                    </Button>
 
                     {submitState.status === "error" && (
                         <p className="text-[0.7rem] text-destructive text-center">

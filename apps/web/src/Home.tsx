@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /* ── 画像 ── */
@@ -448,13 +449,13 @@ export const Home = ({
 
             {/* ═══ 7. FOOTER CTA ═══ */}
             <footer className="py-12 px-5 text-center bg-background">
-                <button
-                    type="button"
-                    className="inline-block px-16 py-3 bg-card border border-border text-xs text-foreground mb-6 hover:bg-accent hover:border-primary transition-colors"
+                <Button
+                    size="lg"
+                    className="px-16 text-xs tracking-wider mb-6"
                     onClick={() => onNavigate?.("rsvp")}
                 >
-                    ご回答のほどお願いします
-                </button>
+                    出欠のご返信はこちら
+                </Button>
                 <p className="text-xs text-text-soft">
                     99月99日(極) 迄にご回答いただければ幸に存じます
                 </p>
