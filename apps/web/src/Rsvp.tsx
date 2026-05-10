@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { isValidEmail } from "@wisaw/shared";
+import { isValidEmail, isValidKana, isValidAlpha } from "@wisaw/shared";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/FadeIn";
@@ -144,6 +144,16 @@ export const Rsvp = () => {
     const isEmailInvalid =
         email.trim().length > 0 && !isValidEmail(email.trim());
 
+    const isKanaInvalid = (v: string) =>
+        v.trim().length > 0 && !isValidKana(v.trim());
+    const isAlphaInvalid = (v: string) =>
+        v.trim().length > 0 && !isValidAlpha(v.trim());
+
+    const hasKanaError =
+        isKanaInvalid(familyNameKana) || isKanaInvalid(firstNameKana);
+    const hasAlphaError =
+        isAlphaInvalid(familyNameEn) || isAlphaInvalid(firstNameEn);
+
     const canSubmit =
         attendance !== "" &&
         host !== "" &&
@@ -151,8 +161,10 @@ export const Rsvp = () => {
         firstNameKanji.trim().length > 0 &&
         familyNameKana.trim().length > 0 &&
         firstNameKana.trim().length > 0 &&
+        !hasKanaError &&
         familyNameEn.trim().length > 0 &&
         firstNameEn.trim().length > 0 &&
+        !hasAlphaError &&
         email.trim().length > 0 &&
         !isEmailInvalid &&
         tel.trim().length > 0 &&
@@ -393,6 +405,11 @@ export const Rsvp = () => {
                                     }
                                 />
                             </div>
+                            {hasKanaError && (
+                                <p className="text-[0.7rem] text-destructive">
+                                    ひらがなまたはカタカナで入力してください
+                                </p>
+                            )}
                         </fieldset>
 
                         <fieldset className="flex flex-col gap-2">
@@ -413,6 +430,11 @@ export const Rsvp = () => {
                                     }
                                 />
                             </div>
+                            {hasAlphaError && (
+                                <p className="text-[0.7rem] text-destructive">
+                                    半角アルファベットで入力してください
+                                </p>
+                            )}
                         </fieldset>
                     </div>
                 </section></FadeIn>

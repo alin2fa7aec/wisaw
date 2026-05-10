@@ -15,3 +15,15 @@ export function isValidEmail(email: string): boolean {
     const result = z.string().email().safeParse(email);
     return result.success;
 }
+
+const KANA_REGEX = /^[぀-ゟ゠-ヿー]+$/;
+
+export function isValidKana(value: string): boolean {
+    return KANA_REGEX.test(value);
+}
+
+const ALPHA_REGEX = /^[A-Za-z\s-]+$/;
+
+export function isValidAlpha(value: string): boolean {
+    return ALPHA_REGEX.test(value);
+}
