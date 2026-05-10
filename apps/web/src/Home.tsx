@@ -431,9 +431,9 @@ export const Home = ({
                                 </a>
                             </div>
                             <p className="mt-3 text-[0.5rem] text-foreground leading-relaxed">
-                                ご不明点ございましたら
+                                式場専用のエレベーターがございます
                                 <br />
-                                新郎新婦までお尋ねください
+                                トラッド目白正面左手よりお入りください
                             </p>
                         </div>
                     </div>
