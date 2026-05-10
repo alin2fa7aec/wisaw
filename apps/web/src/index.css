@@ -203,10 +203,10 @@
     animation: separator-grow-y 3000ms ease-in-out;
 }
 
-@keyframes fade-in {
+@keyframes fade-slide-up {
     from {
         opacity: 0;
-        translate: 0 8px;
+        translate: 0 12px;
     }
     to {
         opacity: 1;
@@ -214,8 +214,53 @@
     }
 }
 
+@keyframes fade-scale {
+    from {
+        opacity: 0;
+        scale: 0.96;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes fade-bounce {
+    0% {
+        opacity: 0;
+        translate: 0 8px;
+        scale: 0.97;
+    }
+    70% {
+        opacity: 1;
+        translate: 0 -2px;
+        scale: 1.01;
+    }
+    100% {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+    }
+}
+
 .animate-fade-in {
-    animation: fade-in 3000ms ease-out both;
+    animation: fade-slide-up 4000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--fade-delay, 0ms);
+}
+
+.animate-fade-scale {
+    animation: fade-scale 4500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--fade-delay, 0ms);
+}
+
+.animate-fade-scale-slow {
+    animation: fade-scale 5000ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation-delay: var(--fade-delay, 0ms);
+}
+
+.animate-fade-bounce {
+    animation: fade-bounce 3500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--fade-delay, 0ms);
 }
 
 @keyframes petal-burst {
@@ -239,7 +284,10 @@
         transform: none;
     }
 
-    .animate-fade-in {
+    .animate-fade-in,
+    .animate-fade-scale,
+    .animate-fade-scale-slow,
+    .animate-fade-bounce {
         animation: none;
     }
 }

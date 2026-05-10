@@ -1,7 +1,8 @@
 import { ExternalLink } from "lucide-react";
 import { Github, Instagram } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { FadeIn } from "@/components/FadeIn";
 
 /* ── 画像 ── */
 const IMG_BASE = "/images";
@@ -18,32 +19,6 @@ const MESSAGE_BG_IMAGE = {
 const VERTICAL_RL: React.CSSProperties = {
     writingMode: "vertical-rl",
     textOrientation: "upright",
-};
-
-/* ── FadeIn ── */
-const FadeIn = ({ children }: { children: ReactNode }) => {
-    const ref = useRef<HTMLDivElement>(null);
-    const [visible, setVisible] = useState(false);
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(
-            ([e]) => {
-                if (e.isIntersecting) {
-                    setVisible(true);
-                    obs.disconnect();
-                }
-            },
-            { rootMargin: "50px" },
-        );
-        obs.observe(el);
-        return () => obs.disconnect();
-    }, []);
-    return (
-        <div ref={ref} className={visible ? "animate-fade-in" : "opacity-0"}>
-            {children}
-        </div>
-    );
 };
 
 /* ── セクションタイトル ── */
@@ -125,11 +100,11 @@ export const Home = ({
             </header>
 
             {/* ═══ 2. MESSAGE ═══ */}
-            <FadeIn>
-                <section className="relative ml-12 mr-6">
-                    {/* 背景 */}
+            <section className="relative ml-12 mr-6">
+                {/* 背景 */}
+                <FadeIn variant="scale-slow" waitForImage className="absolute inset-0 z-0">
                     <div
-                        className="absolute inset-0 z-0 opacity-85"
+                        className="w-full h-full opacity-85"
                         aria-hidden="true"
                     >
                         {MESSAGE_BG_IMAGE ? (
@@ -142,19 +117,27 @@ export const Home = ({
                             <div className="w-full h-full bg-accent" />
                         )}
                     </div>
+                </FadeIn>
 
-                    <div className="relative h-full z-10 text-center -translate-x-6 translate-y-4 bg-popover/50">
+                <div className="relative h-full z-10 text-center -translate-x-6 translate-y-4 bg-popover/50">
+                    <FadeIn>
                         <SectionTitle>MESSAGE</SectionTitle>
-                        <div className="flex flex-col gap-3 leading-loose text-foreground">
-                            <p className="text-xs">謹啓</p>
+                    </FadeIn>
+                    <div className="flex flex-col gap-3 leading-loose text-foreground">
+                        <FadeIn delay={200}><p className="text-xs">謹啓</p></FadeIn>
+                        <FadeIn delay={450}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまにおかれましては</p>
                                 <p>ご清祥のこととお慶び申し上げます</p>
                             </div>
+                        </FadeIn>
+                        <FadeIn delay={700}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>このたび 私たちは結婚式を</p>
                                 <p>挙げることとなりました</p>
                             </div>
+                        </FadeIn>
+                        <FadeIn delay={950}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>
                                     つきましては日頃お世話になっている皆さまに
@@ -162,28 +145,34 @@ export const Home = ({
                                 <p>お集まりいただきささやかな披露宴を</p>
                                 <p>催したいと存じます</p>
                             </div>
+                        </FadeIn>
+                        <FadeIn delay={1200}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>おいそがしいなか恐縮ではございますが</p>
                                 <p>ぜひご出席いただけますと幸いです</p>
                             </div>
+                        </FadeIn>
+                        <FadeIn delay={1450}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまに見守られながら</p>
                                 <p>ふたりの新しい門出を迎えられることを</p>
                                 <p>心より楽しみにしております</p>
                             </div>
+                        </FadeIn>
+                        <FadeIn delay={1700}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>謹白</p>
                             </div>
-                            <div className="h-16"> {/* padding */}</div>
-                        </div>
+                        </FadeIn>
+                        <div className="h-16"> {/* padding */}</div>
                     </div>
-                </section>
-            </FadeIn>
+                </div>
+            </section>
 
             {/* ═══ 3. PROFILE ═══ */}
-            <FadeIn>
-                <section className="py-12">
-                    {/* 写真 */}
+            <section className="py-12">
+                {/* 写真 */}
+                <FadeIn variant="scale-slow" waitForImage>
                     <div className="relative mx-5 mb-10 aspect-1">
                         {PROFILE_IMAGE ? (
                             <img
@@ -202,11 +191,13 @@ export const Home = ({
                             PROFILE
                         </span>
                     </div>
+                </FadeIn>
 
-                    {/* プロフィールカード */}
-                    <div className="grid grid-cols-2 gap-4 px-5">
-                        {/* BRIDE */}
-                        <article className="relative bg-card border border-border p-6 pl-8">
+                {/* プロフィールカード */}
+                <div className="grid grid-cols-2 gap-4 px-5">
+                    {/* BRIDE */}
+                    <FadeIn variant="scale" delay={500} className="h-full">
+                        <article className="relative bg-card border border-border p-6 pl-8 h-full">
                             <header className="mb-4 pb-3 border-b border-border">
                                 <p className="text-base mb-1">柴田 咲葵</p>
                                 <p className="text-xs text-text-soft mb-1">
@@ -233,9 +224,11 @@ export const Home = ({
                                 </div>
                             </span>
                         </article>
+                    </FadeIn>
 
-                        {/* GROOM */}
-                        <article className="relative bg-card border border-border p-6 pr-8">
+                    {/* GROOM */}
+                    <FadeIn variant="scale" delay={900} className="h-full">
+                        <article className="relative bg-card border border-border p-6 pr-8 h-full">
                             <header className="mb-4 pb-3 border-b border-border text-right">
                                 <p className="text-base mb-1">林 晶</p>
                                 <p className="text-xs text-text-soft mb-1">
@@ -260,53 +253,52 @@ export const Home = ({
                                 </div>
                             </span>
                         </article>
-                    </div>
-                </section>
-            </FadeIn>
+                    </FadeIn>
+                </div>
+            </section>
 
             {/* ═══ 4. SCHEDULE ═══ */}
-            <FadeIn>
-                <section className="py-12 relative">
+            <section className="py-12 relative">
+                <FadeIn>
                     <div className="flex items-center gap-3 px-5 mb-8">
                         <span className="flex-1 h-0.5 bg-border" />
                         <span className="text-2xl">SCHEDULE</span>
                     </div>
+                </FadeIn>
 
-                    <ol className="px-5 relative">
-                        {[
-                            {
-                                time: "10:00",
-                                title: "ウェルカムパーティ(受付開始)",
-                                text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付付近にて皆さまをお待ちしております\n朝早くではございますが ぜひ10時からお越しください",
-                                accent: true,
-                            },
-                            {
-                                time: "10:45",
-                                title: "受付締切",
-                                text: "スムーズな進行のため\n10時45分までに受付をお済ませくださいますよう\nお願いいたします\nやむを得ず遅れる場合は 会場スタッフにお声がけください",
-                                highlight: true,
-                            },
-                            {
-                                time: "11:00",
-                                title: "披露宴",
-                                text: "TBD",
-                                illust: true,
-                            },
-                            {
-                                time: "13:50",
-                                title: "挙式",
-                                text: "紙婚にあたり 大切な皆さまの前で誓いを立てます\n温かく見守っていただけますと幸いです",
-                            },
-                            {
-                                time: "14:00",
-                                title: "お見送り",
-                                text: "TBD",
-                            },
-                        ].map((item, i, arr) => (
-                            <li
-                                key={item.time + item.title}
-                                className="grid grid-cols-[auto_14px_1fr] gap-x-3 relative pb-2"
-                            >
+                <ol className="px-5 relative">
+                    {[
+                        {
+                            time: "10:00",
+                            title: "ウェルカムパーティ(受付開始)",
+                            text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付付近にて皆さまをお待ちしております\n朝早くではございますが ぜひ10時からお越しください",
+                            accent: true,
+                        },
+                        {
+                            time: "10:45",
+                            title: "受付締切",
+                            text: "スムーズな進行のため\n10時45分までに受付をお済ませくださいますよう\nお願いいたします\nやむを得ず遅れる場合は 会場スタッフにお声がけください",
+                            highlight: true,
+                        },
+                        {
+                            time: "11:00",
+                            title: "披露宴",
+                            text: "TBD",
+                            illust: true,
+                        },
+                        {
+                            time: "13:50",
+                            title: "挙式",
+                            text: "紙婚にあたり 大切な皆さまの前で誓いを立てます\n温かく見守っていただけますと幸いです",
+                        },
+                        {
+                            time: "14:00",
+                            title: "お見送り",
+                            text: "TBD",
+                        },
+                    ].map((item, i, arr) => (
+                        <FadeIn key={item.time + item.title} delay={300 + i * 250}>
+                            <li className="grid grid-cols-[auto_14px_1fr] gap-x-3 relative pb-2">
                                 {/* 時刻 */}
                                 <div className="flex items-center h-[1.2em]">
                                     <span
@@ -353,26 +345,30 @@ export const Home = ({
                                     <span className="absolute -top-5 right-0 w-2 h-40 bg-primary" />
                                 )}
                             </li>
-                        ))}
-                    </ol>
-                </section>
-            </FadeIn>
+                        </FadeIn>
+                    ))}
+                </ol>
+            </section>
 
             {/* ═══ 5. INFORMATION ═══ */}
-            <FadeIn>
-                <section className="relative">
-                    <div className="relative">
-                        {/* 左端アクセントバー */}
-                        <span className="absolute top-0 left-0 w-2 h-full bg-primary" />
+            <section className="relative">
+                <div className="relative">
+                    {/* 左端アクセントバー */}
+                    <span className="absolute top-0 left-0 w-2 h-full bg-primary" />
+                    <FadeIn>
                         <div className="flex items-center gap-3 px-5 mb-8">
                             <span className="text-2xl">INFORMATION</span>
                         </div>
-                        <div className="px-7 flex flex-col gap-4 leading-[1.9] text-text-soft text-[0.6rem]">
+                    </FadeIn>
+                    <div className="px-7 flex flex-col gap-4 leading-[1.9] text-text-soft text-[0.6rem]">
+                        <FadeIn delay={250}>
                             <p>
                                 ゲスト更衣室が3室ございます
                                 <br />
                                 10時から11時のあいだと14時以降の時間帯にご利用いただけます
                             </p>
+                        </FadeIn>
+                        <FadeIn delay={550}>
                             <p>
                                 会場内には喫煙室もございますが
                                 <br />
@@ -380,28 +376,32 @@ export const Home = ({
                                 <br />
                                 ゲストの皆さまにはご不便おかけしますがご協力お願い申し上げます
                             </p>
+                        </FadeIn>
+                        <FadeIn delay={850}>
                             <p>
                                 お車でお越しの際は近隣のパーキングをご利用ください
                                 <br />
                                 会場専用の駐車スペースはございません
                             </p>
-                            <div className="h-7">{/* padding */}</div>
-                        </div>
+                        </FadeIn>
+                        <div className="h-7">{/* padding */}</div>
                     </div>
-                    <div className="flex items-center gap-3 px-5">
-                        <span className="w-2/5" />
-                        <span className="flex-1 h-0.5 bg-border" />
-                    </div>
-                </section>
-            </FadeIn>
+                </div>
+                <div className="flex items-center gap-3 px-5">
+                    <span className="w-2/5" />
+                    <span className="flex-1 h-0.5 bg-border" />
+                </div>
+            </section>
 
             {/* ═══ 6. ACCESS ═══ */}
-            <FadeIn>
-                <section className="py-5 mt-12 bg-surface-alt">
+            <section className="py-5 mt-12 bg-surface-alt">
+                <FadeIn>
                     <SectionTitle>ACCESS</SectionTitle>
+                </FadeIn>
 
-                    <div className="grid grid-cols-[2fr_1fr] gap-4 px-5">
-                        {/* 地図 */}
+                <div className="grid grid-cols-[2fr_1fr] gap-4 px-5">
+                    {/* 地図 */}
+                    <FadeIn variant="scale" delay={350}>
                         <iframe
                             title="ブラスブルー東京"
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3239.182933145228!2d139.707304!3d35.7217193!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188d3cac293617%3A0x93024249428b39a5!2z44OW44Op44K544OW44Or44O85p2x5Lqs!5e0!3m2!1sja!2sjp!4v1778030033050!5m2!1sja!2sjp"
@@ -409,8 +409,10 @@ export const Home = ({
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                         />
+                    </FadeIn>
 
-                        {/* 情報 */}
+                    {/* 情報 */}
+                    <FadeIn delay={600}>
                         <div className="flex flex-col gap-2">
                             <h3 className="text-base mb-1">ブラスブルー東京</h3>
                             <div className="flex flex-col gap-2 text-[0.5rem] text-text-soft">
@@ -436,22 +438,26 @@ export const Home = ({
                                 トラッド目白正面左手よりお入りください
                             </p>
                         </div>
-                    </div>
-                </section>
-            </FadeIn>
+                    </FadeIn>
+                </div>
+            </section>
 
             {/* ═══ 7. FOOTER CTA ═══ */}
             <footer className="py-12 px-5 text-center bg-background">
-                <Button
-                    size="lg"
-                    className="px-16 text-xs tracking-wider mb-6"
-                    onClick={() => onNavigate?.("rsvp")}
-                >
-                    出欠のご返信はこちら
-                </Button>
-                <p className="text-xs text-text-soft">
-                    99月99日(極) 迄にご回答いただければ幸に存じます
-                </p>
+                <FadeIn variant="bounce">
+                    <Button
+                        size="lg"
+                        className="px-16 text-xs tracking-wider mb-6"
+                        onClick={() => onNavigate?.("rsvp")}
+                    >
+                        出欠のご返信はこちら
+                    </Button>
+                </FadeIn>
+                <FadeIn delay={400}>
+                    <p className="text-xs text-text-soft">
+                        99月99日(極) 迄にご回答いただければ幸に存じます
+                    </p>
+                </FadeIn>
 
                 <div className="flex items-center justify-center gap-8 mt-8">
                     <a

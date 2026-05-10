@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { isValidEmail } from "@wisaw/shared";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+import { FadeIn } from "@/components/FadeIn";
 import { CheckCircle, Send } from "@mynaui/icons-react";
 import KenAll from "ken-all";
 
@@ -232,16 +233,24 @@ export const Rsvp = () => {
         return (
             <div className="bg-background overflow-hidden">
                 <div className="flex flex-col items-center justify-center py-24 px-5 text-center">
-                    <span className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-6">
-                        <CheckCircle className="size-6 text-primary" />
-                    </span>
-                    <h2 className="text-2xl mb-4">ありがとうございます</h2>
-                    <p className="text-xs text-text-soft leading-relaxed">
-                        ご回答を受け付けました
-                        <br />
-                        当日お会いできることを楽しみにしております
-                    </p>
-                    <span className="w-2/5 h-px bg-border mt-8" />
+                    <FadeIn variant="scale">
+                        <span className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-6 mx-auto">
+                            <CheckCircle className="size-6 text-primary" />
+                        </span>
+                    </FadeIn>
+                    <FadeIn delay={400}>
+                        <h2 className="text-2xl mb-4">ありがとうございます</h2>
+                    </FadeIn>
+                    <FadeIn delay={800}>
+                        <p className="text-xs text-text-soft leading-relaxed">
+                            ご回答を受け付けました
+                            <br />
+                            当日お会いできることを楽しみにしております
+                        </p>
+                    </FadeIn>
+                    <FadeIn delay={1200}>
+                        <span className="block w-2/5 h-px bg-border mt-8" />
+                    </FadeIn>
                 </div>
             </div>
         );
@@ -251,19 +260,25 @@ export const Rsvp = () => {
         <div className="bg-background overflow-hidden">
             {/* ── ヘッダー ── */}
             <header className="pt-10 pb-8 px-5 text-center">
-                <h1 className="text-2xl mb-3">RSVP</h1>
-                <p className="text-xs text-text-soft leading-relaxed">
-                    おいそがしいなか恐れ入りますが
-                    <br />
-                    以下のフォームにご回答ください
-                </p>
-                <div className="flex items-center gap-3 mt-6">
-                    <span className="flex-1 h-px bg-border" />
-                    <span className="text-[0.6rem] text-text-mute">
-                        99月99日(極) 迄にご回答ください
-                    </span>
-                    <span className="flex-1 h-px bg-border" />
-                </div>
+                <FadeIn>
+                    <h1 className="text-2xl mb-3">RSVP</h1>
+                </FadeIn>
+                <FadeIn delay={300}>
+                    <p className="text-xs text-text-soft leading-relaxed">
+                        おいそがしいなか恐れ入りますが
+                        <br />
+                        以下のフォームにご回答ください
+                    </p>
+                </FadeIn>
+                <FadeIn delay={600}>
+                    <div className="flex items-center gap-3 mt-6">
+                        <span className="flex-1 h-px bg-border" />
+                        <span className="text-[0.6rem] text-text-mute">
+                            99月99日(極) 迄にご回答ください
+                        </span>
+                        <span className="flex-1 h-px bg-border" />
+                    </div>
+                </FadeIn>
             </header>
 
             <div className="px-5 pb-12 flex flex-col gap-10">
@@ -272,52 +287,54 @@ export const Rsvp = () => {
                 </p>
 
                 {/* ═══ 1. 出欠 ═══ */}
-                <section>
-                    <SectionHeader number="01" title="ご出欠" />
+                <FadeIn>
+                    <section>
+                        <SectionHeader number="01" title="ご出欠" />
 
-                    <div className="flex flex-col gap-6">
-                        <fieldset className="flex flex-col gap-3">
-                            <FieldLabel required>ご出欠</FieldLabel>
-                            <RadioGroup
-                                value={attendance}
-                                onValueChange={setAttendance}
-                                className="flex justify-center gap-8"
-                            >
-                                {["ご出席", "ご欠席", "保留"].map((v) => (
-                                    <RadioButton
-                                        key={v}
-                                        value={v}
-                                        id={`attendance-${v}`}
-                                        selected={attendance === v}
-                                    />
-                                ))}
-                            </RadioGroup>
-                        </fieldset>
+                        <div className="flex flex-col gap-6">
+                            <fieldset className="flex flex-col gap-3">
+                                <FieldLabel required>ご出欠</FieldLabel>
+                                <RadioGroup
+                                    value={attendance}
+                                    onValueChange={setAttendance}
+                                    className="flex justify-center gap-8"
+                                >
+                                    {["ご出席", "ご欠席", "保留"].map((v) => (
+                                        <RadioButton
+                                            key={v}
+                                            value={v}
+                                            id={`attendance-${v}`}
+                                            selected={attendance === v}
+                                        />
+                                    ))}
+                                </RadioGroup>
+                            </fieldset>
 
-                        <fieldset className="flex flex-col gap-3">
-                            <FieldLabel required>
-                                どちら側のゲストですか？
-                            </FieldLabel>
-                            <RadioGroup
-                                value={host}
-                                onValueChange={setHost}
-                                className="flex justify-center gap-8"
-                            >
-                                {["新婦", "新郎"].map((v) => (
-                                    <RadioButton
-                                        key={v}
-                                        value={v}
-                                        id={`host-${v}`}
-                                        selected={host === v}
-                                    />
-                                ))}
-                            </RadioGroup>
-                        </fieldset>
-                    </div>
-                </section>
+                            <fieldset className="flex flex-col gap-3">
+                                <FieldLabel required>
+                                    どちら側のゲストですか？
+                                </FieldLabel>
+                                <RadioGroup
+                                    value={host}
+                                    onValueChange={setHost}
+                                    className="flex justify-center gap-8"
+                                >
+                                    {["新婦", "新郎"].map((v) => (
+                                        <RadioButton
+                                            key={v}
+                                            value={v}
+                                            id={`host-${v}`}
+                                            selected={host === v}
+                                        />
+                                    ))}
+                                </RadioGroup>
+                            </fieldset>
+                        </div>
+                    </section>
+                </FadeIn>
 
                 {/* ═══ 2. ご芳名 ═══ */}
-                <section>
+                <FadeIn><section>
                     <div className="flex items-center gap-3 mb-6">
                         <span className="text-primary text-lg">02</span>
                         <span className="flex-1 h-px bg-border" />
@@ -398,10 +415,10 @@ export const Rsvp = () => {
                             </div>
                         </fieldset>
                     </div>
-                </section>
+                </section></FadeIn>
 
                 {/* ═══ 3. ご連絡先 ═══ */}
-                <section>
+                <FadeIn><section>
                     <SectionHeader number="03" title="ご連絡先" />
 
                     <div className="flex flex-col gap-5">
@@ -430,10 +447,10 @@ export const Rsvp = () => {
                             />
                         </fieldset>
                     </div>
-                </section>
+                </section></FadeIn>
 
                 {/* ═══ 4. ご住所 ═══ */}
-                <section>
+                <FadeIn><section>
                     <SectionHeader number="04" title="ご住所" />
 
                     <div className="flex flex-col gap-3">
@@ -504,10 +521,10 @@ export const Rsvp = () => {
                             />
                         </fieldset>
                     </div>
-                </section>
+                </section></FadeIn>
 
                 {/* ═══ 5. アレルギー ═══ */}
-                <section>
+                <FadeIn><section>
                     <SectionHeader number="05" title="アレルギー" />
 
                     <div className="flex flex-col gap-4">
@@ -579,10 +596,10 @@ export const Rsvp = () => {
                             </div>
                         )}
                     </div>
-                </section>
+                </section></FadeIn>
 
                 {/* ═══ 6. メッセージ ═══ */}
-                <section>
+                <FadeIn><section>
                     <SectionHeader number="06" title="メッセージ" />
 
                     <fieldset className="flex flex-col gap-2">
@@ -594,37 +611,39 @@ export const Rsvp = () => {
                             onChange={(e) => setMessage(e.target.value)}
                         />
                     </fieldset>
-                </section>
+                </section></FadeIn>
 
                 {/* ═══ 送信 ═══ */}
-                <div className="flex flex-col items-center gap-4 pt-4">
-                    <span className="w-3/5 h-px bg-border" />
+                <FadeIn variant="bounce">
+                    <div className="flex flex-col items-center gap-4 pt-4">
+                        <span className="w-3/5 h-px bg-border" />
 
-                    <Button
-                        size="lg"
-                        className="w-full py-3.5 text-xs tracking-wider"
-                        disabled={!canSubmit}
-                        onClick={handleSubmit}
-                    >
-                        {submitState.status === "submitting" ? (
-                            <>
-                                <Spinner />
-                                送信中…
-                            </>
-                        ) : (
-                            <>
-                                <Send className="size-4" />
-                                送信する
-                            </>
+                        <Button
+                            size="lg"
+                            className="w-full py-3.5 text-xs tracking-wider"
+                            disabled={!canSubmit}
+                            onClick={handleSubmit}
+                        >
+                            {submitState.status === "submitting" ? (
+                                <>
+                                    <Spinner />
+                                    送信中…
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="size-4" />
+                                    送信する
+                                </>
+                            )}
+                        </Button>
+
+                        {submitState.status === "error" && (
+                            <p className="text-[0.7rem] text-destructive text-center">
+                                {submitState.message}
+                            </p>
                         )}
-                    </Button>
-
-                    {submitState.status === "error" && (
-                        <p className="text-[0.7rem] text-destructive text-center">
-                            {submitState.message}
-                        </p>
-                    )}
-                </div>
+                    </div>
+                </FadeIn>
             </div>
         </div>
     );
