@@ -213,7 +213,9 @@ export const Home = ({
                                     SHIBATA SAKI
                                 </p>
                                 <p className="text-[0.7rem] text-text-mute">
-                                    1998.5.7 Kyoto
+                                    1998.5.7
+                                    <br />
+                                    Kyoto
                                 </p>
                             </header>
                             <dl className="text-xs leading-[1.8]">
@@ -248,7 +250,9 @@ export const Home = ({
                                     LIN AKIRA
                                 </p>
                                 <p className="text-[0.7rem] text-text-mute">
-                                    1997.2.20 Kanagawa
+                                    1997.2.20
+                                    <br />
+                                    Kanagawa
                                 </p>
                             </header>
                             <dl className="text-xs leading-[1.8]">
