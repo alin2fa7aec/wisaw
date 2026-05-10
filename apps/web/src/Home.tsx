@@ -220,17 +220,9 @@ export const Home = ({
                             </header>
                             <dl className="text-xs leading-[1.8]">
                                 <dt className="text-text-soft">好きなもの:</dt>
-                                <dd className="mb-3">
-                                    料理やお菓子作りが好きです
-                                    <br />
-                                    週末はキッチンで過ごす時間が
-                                </dd>
+                                <dd className="mb-3">TBD</dd>
                                 <dt className="text-text-soft">メッセージ:</dt>
-                                <dd>
-                                    みなさまにお会いできることを
-                                    <br />
-                                    楽しみにしています!
-                                </dd>
+                                <dd>TBD</dd>
                             </dl>
                             <span className="absolute top-3 -right-1 w-3 h-2/5 bg-accent">
                                 <div
@@ -257,11 +249,7 @@ export const Home = ({
                             </header>
                             <dl className="text-xs leading-[1.8]">
                                 <dt className="text-text-soft">メッセージ:</dt>
-                                <dd>
-                                    みなさまにお会いできることを
-                                    <br />
-                                    楽しみにしています!
-                                </dd>
+                                <dd>TBD</dd>
                             </dl>
                             <span className="absolute top-32 -left-1 w-3 h-2/5 bg-accent">
                                 <div
