@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { Github, Instagram } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { FadeIn } from "@/components/FadeIn";
 
 /* ── 画像 ── */
@@ -14,6 +14,42 @@ const PROFILE_IMAGE = { src: `${IMG_BASE}/cafe.jpg`, alt: "cafe" };
 const MESSAGE_BG_IMAGE = {
     src: `${IMG_BASE}/that_pedestrian_crossing_painting.png`,
     alt: "that_pedestrian_crossing_painting",
+};
+
+const WEDDING_START = new Date("2026-10-18T10:00:00+09:00").getTime();
+const WEDDING_END = new Date("2026-10-19T00:00:00+09:00").getTime();
+const useWeddingMessage = () => {
+    const [msg, setMsg] = useState("");
+
+    useEffect(() => {
+        const update = () => {
+            const now = Date.now();
+            if (now >= WEDDING_END) {
+                setMsg("arigatou gozaimashita");
+                return false;
+            }
+            if (now >= WEDDING_START) {
+                setMsg("tadaima shiki no massaichu!");
+                return false;
+            }
+            const diff = WEDDING_START - now;
+            const d = Math.floor(diff / 86_400_000);
+            const h = Math.floor((diff % 86_400_000) / 3_600_000);
+            const m = Math.floor((diff % 3_600_000) / 60_000);
+            const s = Math.floor((diff % 60_000) / 1_000);
+            setMsg(
+                d > 0 ? `ato ${d}d ${h}h ${m}m ${s}s` : `ato ${h}h ${m}m ${s}s`,
+            );
+            return true;
+        };
+        if (!update()) return;
+        const id = setInterval(() => {
+            if (!update()) clearInterval(id);
+        }, 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    return msg;
 };
 
 const VERTICAL_RL: React.CSSProperties = {
@@ -46,6 +82,8 @@ export const Home = ({
 }: {
     onNavigate?: (target: string) => void;
 }) => {
+    const weddingMessage = useWeddingMessage();
+
     return (
         <div className="bg-background overflow-hidden">
             {/* ═══ 1. HERO ═══ */}
@@ -77,7 +115,7 @@ export const Home = ({
                         <div className="flex items-center gap-2 mt-2">
                             <span className="flex-4 h-0.5 bg-border" />
                             <span className="text-[0.5rem] text-text-soft shrink-0">
-                                mejiro no ekimae toho 1min
+                                {weddingMessage}
                             </span>
                             <span className="flex-1 h-0.5 bg-border" />
                         </div>
@@ -102,7 +140,11 @@ export const Home = ({
             {/* ═══ 2. MESSAGE ═══ */}
             <section className="relative ml-12 mr-6">
                 {/* 背景 */}
-                <FadeIn variant="scale-slow" waitForImage className="absolute inset-0 z-0">
+                <FadeIn
+                    variant="scale-slow"
+                    waitForImage
+                    className="absolute inset-0 z-0"
+                >
                     <div
                         className="w-full h-full opacity-85"
                         aria-hidden="true"
@@ -124,7 +166,9 @@ export const Home = ({
                         <SectionTitle>MESSAGE</SectionTitle>
                     </FadeIn>
                     <div className="flex flex-col gap-3 leading-loose text-foreground">
-                        <FadeIn delay={200}><p className="text-xs">謹啓</p></FadeIn>
+                        <FadeIn delay={200}>
+                            <p className="text-xs">謹啓</p>
+                        </FadeIn>
                         <FadeIn delay={450}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまにおかれましては</p>
@@ -297,7 +341,10 @@ export const Home = ({
                             text: "TBD",
                         },
                     ].map((item, i, arr) => (
-                        <FadeIn key={item.time + item.title} delay={300 + i * 250}>
+                        <FadeIn
+                            key={item.time + item.title}
+                            delay={300 + i * 250}
+                        >
                             <li className="grid grid-cols-[auto_14px_1fr] gap-x-3 relative pb-2">
                                 {/* 時刻 */}
                                 <div className="flex items-center h-[1.2em]">
