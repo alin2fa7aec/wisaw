@@ -267,6 +267,7 @@ export const Gallery = () => {
                         <img
                             src={`${IMG_BASE}/thumbs/${img.file}`}
                             alt={img.file}
+                            loading="lazy"
                             style={{ aspectRatio: `${img.w}/${img.h}` }}
                             className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => setLightboxIndex(index)}
