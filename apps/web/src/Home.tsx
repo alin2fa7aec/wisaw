@@ -183,27 +183,20 @@ export const Home = ({
                         </FadeIn>
                         <FadeIn delay={950}>
                             <div className="flex flex-col gap-0 text-xs">
-                                <p>
-                                    つきましては日頃お世話になっている皆さまに
-                                </p>
-                                <p>お集まりいただきささやかな披露宴を</p>
+                                <p>つきましては日頃お世話になっている</p>
+                                <p>皆さまにお集まりいただき</p>
+                                <p> ささやかな披露宴を</p>
                                 <p>催したいと存じます</p>
                             </div>
                         </FadeIn>
                         <FadeIn delay={1200}>
-                            <div className="flex flex-col gap-0 text-xs">
-                                <p>おいそがしいなか恐縮ではございますが</p>
-                                <p>ぜひご出席いただけますと幸いです</p>
-                            </div>
-                        </FadeIn>
-                        <FadeIn delay={1450}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまに見守られながら</p>
                                 <p>ふたりの新しい門出を迎えられることを</p>
                                 <p>心より楽しみにしております</p>
                             </div>
                         </FadeIn>
-                        <FadeIn delay={1700}>
+                        <FadeIn delay={1450}>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>謹白</p>
                             </div>
@@ -285,8 +278,16 @@ export const Home = ({
                                 </p>
                             </header>
                             <dl className="text-xs leading-[1.8]">
+                                <dt className="text-text-soft">好きなもの:</dt>
+                                <dd className="mb-3">読む 飲む 歩く</dd>
                                 <dt className="text-text-soft">メッセージ:</dt>
-                                <dd>TBD</dd>
+                                <dd>
+                                    何年後にも惜しむことのない
+                                    <br />
+                                    そんな日を皆さまと一緒に過ごせることを
+                                    <br />
+                                    心待ちにしております
+                                </dd>
                             </dl>
                             <span className="absolute top-32 -left-1 w-3 h-2/5 bg-accent">
                                 <div
@@ -315,7 +316,7 @@ export const Home = ({
                         {
                             time: "10:00",
                             title: "ウェルカムパーティ(受付開始)",
-                            text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付付近にて皆さまをお待ちしております\n朝早くではございますが ぜひ10時からお越しください",
+                            text: "ゲストの皆さまとの時間を少しでも長く楽しみたいと思い\n新郎新婦のふたりが受付にて皆さまをお待ちしております\n朝早くではございますが ぜひ10時からお越しください",
                             accent: true,
                         },
                         {
@@ -327,18 +328,18 @@ export const Home = ({
                         {
                             time: "11:00",
                             title: "披露宴",
-                            text: "TBD",
+                            text: "お食事とご歓談をお楽しみいただきながら\n新郎新婦より皆さまへご挨拶をさせていただきます\nお料理もたくさんご用意しておりますので\nどうぞ ごゆっくりお過ごしください",
                             illust: true,
                         },
                         {
                             time: "13:50",
                             title: "挙式",
-                            text: "紙婚にあたり 大切な皆さまの前で誓いを立てます\n温かく見守っていただけますと幸いです",
+                            text: "結婚にあたり 大切な皆さまの前で誓いを立てます\n温かく見守っていただけますと幸いです",
                         },
                         {
                             time: "14:00",
                             title: "お見送り",
-                            text: "TBD",
+                            text: "新郎新婦より感謝の気持ちを込めてお見送りいたします",
                         },
                     ].map((item, i, arr) => (
                         <FadeIn
