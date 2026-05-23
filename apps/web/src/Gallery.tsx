@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
@@ -9,26 +9,45 @@ const IMG_BASE = "/images/gallery";
 
 type GalleryImage = { file: string; w: number; h: number };
 
+const SWIPE_THRESHOLD = 50;
+
 const Lightbox = ({
-    image,
+    images,
+    index,
     onClose,
-    onPrev,
-    onNext,
+    onChange,
 }: {
-    image: GalleryImage;
+    images: GalleryImage[];
+    index: number;
     onClose: () => void;
-    onPrev: () => void;
-    onNext: () => void;
+    onChange: (i: number) => void;
 }) => {
+    const trackRef = useRef<HTMLDivElement>(null);
+    const touchRef = useRef<{
+        startX: number;
+        startY: number;
+        locked: boolean | null;
+        dx: number;
+    } | null>(null);
+
+    const wrap = (i: number) => ((i % images.length) + images.length) % images.length;
+
+    useEffect(() => {
+        for (let d = -2; d <= 2; d++) {
+            const img = new Image();
+            img.src = `${IMG_BASE}/${images[wrap(index + d)]!.file}`;
+        }
+    }, [index, images]);
+
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
-            if (e.key === "ArrowLeft") onPrev();
-            if (e.key === "ArrowRight") onNext();
+            if (e.key === "ArrowLeft") onChange(wrap(index - 1));
+            if (e.key === "ArrowRight") onChange(wrap(index + 1));
         };
         document.addEventListener("keydown", handleKey);
         return () => document.removeEventListener("keydown", handleKey);
-    }, [onClose, onPrev, onNext]);
+    }, [onClose, onChange, index, images.length]);
 
     useEffect(() => {
         document.body.style.overflow = "hidden";
@@ -37,46 +56,140 @@ const Lightbox = ({
         };
     }, []);
 
+    const applyTranslate = (dx: number, animate: boolean) => {
+        const track = trackRef.current;
+        if (!track) return;
+        track.style.transition = animate ? "transform 250ms ease-out" : "none";
+        track.style.transform = `translateX(${dx}px)`;
+    };
+
+    useEffect(() => {
+        const el = trackRef.current;
+        if (!el) return;
+
+        const onStart = (e: TouchEvent) => {
+            el.style.transition = "none";
+            touchRef.current = {
+                startX: e.touches[0]!.clientX,
+                startY: e.touches[0]!.clientY,
+                locked: null,
+                dx: 0,
+            };
+        };
+
+        const onMove = (e: TouchEvent) => {
+            const t = touchRef.current;
+            if (!t) return;
+            const dx = e.touches[0]!.clientX - t.startX;
+            const dy = e.touches[0]!.clientY - t.startY;
+            if (t.locked === null) {
+                if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+                t.locked = Math.abs(dx) >= Math.abs(dy);
+            }
+            if (!t.locked) return;
+            e.preventDefault();
+            t.dx = dx;
+            el.style.transform = `translateX(${dx}px)`;
+        };
+
+        const onEnd = () => {
+            const t = touchRef.current;
+            touchRef.current = null;
+            if (!t || !t.locked) {
+                applyTranslate(0, false);
+                return;
+            }
+            if (Math.abs(t.dx) > SWIPE_THRESHOLD) {
+                const dir = t.dx > 0 ? 1 : -1;
+                applyTranslate(dir * window.innerWidth, true);
+                const onDone = () => {
+                    el.removeEventListener("transitionend", onDone);
+                    onChange(wrap(index - dir));
+                };
+                el.addEventListener("transitionend", onDone);
+            } else {
+                applyTranslate(0, true);
+            }
+        };
+
+        el.addEventListener("touchstart", onStart, { passive: true });
+        el.addEventListener("touchmove", onMove, { passive: false });
+        el.addEventListener("touchend", onEnd);
+        return () => {
+            el.removeEventListener("touchstart", onStart);
+            el.removeEventListener("touchmove", onMove);
+            el.removeEventListener("touchend", onEnd);
+        };
+    }, [index, images.length, onChange]);
+
+    useEffect(() => {
+        applyTranslate(0, false);
+    }, [index]);
+
+    const slides = [-2, -1, 0, 1, 2].map((offset) => ({
+        img: images[wrap(index + offset)]!,
+        offset,
+    }));
+
     return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+            className="fixed inset-0 z-50 bg-black/80"
             onClick={onClose}
         >
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 text-white hover:bg-white/20"
+                className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
                 onClick={onClose}
             >
                 <X className="size-6" />
             </Button>
 
             <button
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
                 onClick={(e) => {
                     e.stopPropagation();
-                    onPrev();
+                    onChange(wrap(index - 1));
                 }}
             >
                 &#8249;
             </button>
-
-            <img
-                src={`${IMG_BASE}/${image.file}`}
-                alt={image.file}
-                className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
-                onClick={(e) => e.stopPropagation()}
-            />
-
             <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
                 onClick={(e) => {
                     e.stopPropagation();
-                    onNext();
+                    onChange(wrap(index + 1));
                 }}
             >
                 &#8250;
             </button>
+
+            <div className="absolute inset-0 overflow-hidden">
+                <div
+                    ref={trackRef}
+                    className="h-full will-change-transform"
+                >
+                    {slides.map(({ img, offset }) => (
+                        <div
+                            key={`${index}-${offset}`}
+                            className="absolute top-0 flex items-center justify-center"
+                            style={{
+                                left: `${offset * 100}vw`,
+                                width: "100vw",
+                                height: "100%",
+                            }}
+                        >
+                            <img
+                                src={`${IMG_BASE}/${img.file}`}
+                                alt={img.file}
+                                className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+                                onClick={(e) => e.stopPropagation()}
+                                draggable={false}
+                            />
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>,
         document.body,
     );
@@ -95,20 +208,6 @@ export const Gallery = () => {
     }, []);
 
     const closeLightbox = useCallback(() => setLightboxIndex(null), []);
-    const showPrev = useCallback(
-        () =>
-            setLightboxIndex((i) =>
-                i !== null ? (i - 1 + images.length) % images.length : null,
-            ),
-        [images.length],
-    );
-    const showNext = useCallback(
-        () =>
-            setLightboxIndex((i) =>
-                i !== null ? (i + 1) % images.length : null,
-            ),
-        [images.length],
-    );
 
     if (loading) {
         return (
@@ -154,10 +253,10 @@ export const Gallery = () => {
 
             {lightboxIndex !== null && (
                 <Lightbox
-                    image={images[lightboxIndex]!}
+                    images={images}
+                    index={lightboxIndex}
                     onClose={closeLightbox}
-                    onPrev={showPrev}
-                    onNext={showNext}
+                    onChange={setLightboxIndex}
                 />
             )}
         </div>
