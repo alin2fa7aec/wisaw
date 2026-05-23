@@ -23,11 +23,13 @@ const Lightbox = ({
     onChange: (i: number) => void;
 }) => {
     const trackRef = useRef<HTMLDivElement>(null);
+    const backdropRef = useRef<HTMLDivElement>(null);
     const touchRef = useRef<{
         startX: number;
         startY: number;
-        locked: boolean | null;
+        axis: "x" | "y" | null;
         dx: number;
+        dy: number;
     } | null>(null);
 
     const wrap = (i: number) => ((i % images.length) + images.length) % images.length;
@@ -72,8 +74,9 @@ const Lightbox = ({
             touchRef.current = {
                 startX: e.touches[0]!.clientX,
                 startY: e.touches[0]!.clientY,
-                locked: null,
+                axis: null,
                 dx: 0,
+                dy: 0,
             };
         };
 
@@ -82,21 +85,41 @@ const Lightbox = ({
             if (!t) return;
             const dx = e.touches[0]!.clientX - t.startX;
             const dy = e.touches[0]!.clientY - t.startY;
-            if (t.locked === null) {
+            if (t.axis === null) {
                 if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
-                t.locked = Math.abs(dx) >= Math.abs(dy);
+                t.axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
             }
-            if (!t.locked) return;
-            e.preventDefault();
-            t.dx = dx;
-            el.style.transform = `translateX(${dx}px)`;
+            if (t.axis === "x") {
+                e.preventDefault();
+                t.dx = dx;
+                el.style.transform = `translateX(${dx}px)`;
+            } else {
+                e.preventDefault();
+                t.dy = dy;
+                el.style.transform = `translateY(${dy}px)`;
+                const opacity = Math.max(0, 1 - Math.abs(dy) / 300);
+                if (backdropRef.current) backdropRef.current.style.opacity = `${opacity}`;
+            }
         };
 
         const onEnd = () => {
             const t = touchRef.current;
             touchRef.current = null;
-            if (!t || !t.locked) {
+            if (!t || !t.axis) {
                 applyTranslate(0, false);
+                return;
+            }
+            if (t.axis === "y") {
+                if (Math.abs(t.dy) > 100) {
+                    onClose();
+                } else {
+                    el.style.transition = "transform 250ms ease-out";
+                    el.style.transform = "translateY(0)";
+                    if (backdropRef.current) {
+                        backdropRef.current.style.transition = "opacity 250ms ease-out";
+                        backdropRef.current.style.opacity = "1";
+                    }
+                }
                 return;
             }
             if (Math.abs(t.dx) > SWIPE_THRESHOLD) {
@@ -133,6 +156,7 @@ const Lightbox = ({
 
     return createPortal(
         <div
+            ref={backdropRef}
             className="fixed inset-0 z-50 bg-black/80"
             onClick={onClose}
         >
