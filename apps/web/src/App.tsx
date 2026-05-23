@@ -9,7 +9,13 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
-import { X, Home as HomeIcon, Mail, Controller } from "@mynaui/icons-react";
+import {
+    X,
+    Home as HomeIcon,
+    Mail,
+    Controller,
+    Image,
+} from "@mynaui/icons-react";
 import type { ComponentType, SVGAttributes } from "react";
 import { TapPetals } from "@/components/TapPetals";
 
@@ -17,15 +23,19 @@ const HomePage = lazy(() =>
     import("./Home").then((m) => ({ default: m.Home })),
 );
 const Rsvp = lazy(() => import("./Rsvp").then((m) => ({ default: m.Rsvp })));
+const Gallery = lazy(() =>
+    import("./Gallery").then((m) => ({ default: m.Gallery })),
+);
 import { DinosaurGame } from "./DinosaurGame";
 
-type ContentKey = "home" | "rsvp" | "dinosaur-game";
+type ContentKey = "home" | "rsvp" | "gallery" | "dinosaur-game";
 
 type MynaIcon = ComponentType<SVGAttributes<SVGElement>>;
 
 const contentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
     { key: "home", label: "Home", icon: HomeIcon },
     { key: "rsvp", label: "RSVP", icon: Mail },
+    { key: "gallery", label: "Gallery", icon: Image },
     { key: "dinosaur-game", label: "Dinosaur Game", icon: Controller },
 ];
 
@@ -111,6 +121,7 @@ const App = () => {
                                     />
                                 )}
                                 {activeContent === "rsvp" && <Rsvp />}
+                                {activeContent === "gallery" && <Gallery />}
                                 {activeContent === "dinosaur-game" && (
                                     <DinosaurGame />
                                 )}
