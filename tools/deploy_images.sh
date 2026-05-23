@@ -10,6 +10,9 @@ if [ ! -d "$SOURCE_DIR" ]; then
     exit 1
 fi
 
+echo "Generating thumbnails..."
+node "$(dirname "$0")/generate_thumbnails.mjs"
+
 echo "Uploading images to s3://$BUCKET/images/ ..."
 aws s3 sync "$SOURCE_DIR" "s3://$BUCKET/images/" \
     --profile "$PROFILE" \
