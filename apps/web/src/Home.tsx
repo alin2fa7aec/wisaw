@@ -382,11 +382,6 @@ export const Home = ({
                                     >
                                         {item.text}
                                     </p>
-                                    {item.illust && (
-                                        <div className="mt-3 p-4 bg-surface-alt text-center text-xs text-text-soft rounded-sm">
-                                            いい感じのイラスト
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* アクセントバー */}
