@@ -249,9 +249,11 @@ export const Home = ({
                             </header>
                             <dl className="text-[0.5rem] leading-[1.8]">
                                 <dt className="text-text-soft">好きなこと:</dt>
-                                <dd className="mb-3">料理が好きです</dd
+                                <dd className="mb-3">料理が好きです</dd>
                                 <dt className="text-text-soft">メッセージ:</dt>
-                                <dd>皆さまと和やかな時間を過ごせる一日になればと思っています</dd>
+                                <dd>
+                                    皆さまと和やかな時間を過ごせる一日になればと思っています
+                                </dd>
                             </dl>
                             <span className="absolute top-3 -right-1 w-3 h-2/5 bg-accent">
                                 <div
