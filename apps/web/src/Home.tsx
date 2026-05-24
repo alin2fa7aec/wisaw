@@ -246,11 +246,11 @@ export const Home = ({
                                     Kyoto
                                 </p>
                             </header>
-                            <dl className="text-xs leading-[1.8]">
-                                <dt className="text-text-soft">好きなもの:</dt>
-                                <dd className="mb-3">TBD</dd>
+                            <dl className="text-[0.5rem] leading-[1.8]">
+                                <dt className="text-text-soft">好きなこと:</dt>
+                                <dd className="mb-3">料理が好きです</dd
                                 <dt className="text-text-soft">メッセージ:</dt>
-                                <dd>TBD</dd>
+                                <dd>皆さまと和やかな時間を過ごせる一日になればと思っています</dd>
                             </dl>
                             <span className="absolute top-3 -right-1 w-3 h-2/5 bg-accent">
                                 <div
@@ -277,15 +277,15 @@ export const Home = ({
                                     Kanagawa
                                 </p>
                             </header>
-                            <dl className="text-xs leading-[1.8]">
-                                <dt className="text-text-soft">好きなもの:</dt>
-                                <dd className="mb-3">読む 飲む 歩く</dd>
+                            <dl className="text-[0.5rem] leading-[1.8]">
+                                <dt className="text-text-soft">好きなこと:</dt>
+                                <dd className="mb-3">
+                                    本を読みお茶を飲みただ歩くことを喜びとします
+                                </dd>
                                 <dt className="text-text-soft">メッセージ:</dt>
                                 <dd>
                                     何年後にも惜しむことのない
-                                    <br />
                                     そんな日を皆さまと一緒に過ごせることを
-                                    <br />
                                     心待ちにしております
                                 </dd>
                             </dl>
