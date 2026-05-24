@@ -377,7 +377,7 @@ export const Home = ({
                                         <span className="block w-75/100 h-px bg-border" />
                                     </h3>
                                     <p
-                                        className={`text-[0.5rem] leading-[1.8] whitespace-pre-line ${item.highlight ? "text-foreground font-medium" : "text-text-soft"}`}
+                                        className={`text-[0.5rem] leading-[1.8] whitespace-pre-line text-text-soft`}
                                     >
                                         {item.text}
                                     </p>
