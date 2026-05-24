@@ -15,6 +15,7 @@ const MESSAGE_BG_IMAGE = {
     src: `${IMG_BASE}/that_pedestrian_crossing_painting.png`,
     alt: "that_pedestrian_crossing_painting",
 };
+const MAP_IMAGE = { src: `${IMG_BASE}/map.png`, alt: "map" };
 
 const WEDDING_START = new Date("2026-10-18T10:00:00+09:00").getTime();
 const WEDDING_END = new Date("2026-10-19T00:00:00+09:00").getTime();
@@ -447,47 +448,57 @@ export const Home = ({
                     <SectionTitle>ACCESS</SectionTitle>
                 </FadeIn>
 
-                <div className="grid grid-cols-[2fr_1fr] gap-4 px-5">
-                    {/* 地図 */}
-                    <FadeIn variant="scale" delay={350}>
+                {/* 情報 */}
+                <FadeIn delay={350}>
+                    <div className="flex flex-col gap-3 items-center">
+                        <h3 className="text-base mb-1">ブラスブルー東京</h3>
+                        <div className="flex flex-col gap-2 text-center text-text-soft">
+                            <p>
+                                〒171-0031 <br />
+                                東京都豊島区目白2-39-1 <br />
+                                トラッド目白 3階/4階
+                            </p>
+                            <p>☏ 03-5950-7025</p>
+                            <a
+                                href="https://www.brassbleu-tokyo.brass.ne.jp/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-end-safe  justify-center gap-1 border-b"
+                            >
+                                BRASS BLEU TOKYO
+                                <ExternalLink className="w-3" />
+                            </a>
+                        </div>
+                        <p className="mt-3 text-foreground leading-relaxed">
+                            式場専用のエレベーターがございます
+                            <br />
+                            トラッド目白正面左手よりお入りください
+                        </p>
+                    </div>
+                </FadeIn>
+
+                {/* 地図 */}
+
+                <FadeIn variant="scale" delay={350}>
+                    <div className="grid grid-cols-2 gap-4 px-5 py-7">
                         <iframe
                             title="ブラスブルー東京"
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3239.182933145228!2d139.707304!3d35.7217193!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188d3cac293617%3A0x93024249428b39a5!2z44OW44Op44K544OW44Or44O85p2x5Lqs!5e0!3m2!1sja!2sjp!4v1778030033050!5m2!1sja!2sjp"
-                            className="w-full h-full border-0"
+                            className="w-full h-full border-0 aspect-square"
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                         />
-                    </FadeIn>
-
-                    {/* 情報 */}
-                    <FadeIn delay={600}>
-                        <div className="flex flex-col gap-2">
-                            <h3 className="text-base mb-1">ブラスブルー東京</h3>
-                            <div className="flex flex-col gap-2 text-[0.5rem] text-text-soft">
-                                <p>
-                                    〒171-0031 <br />
-                                    東京都豊島区目白2-39-1 <br />
-                                    トラッド目白 3階/4階
-                                </p>
-                                <p>☏ 03-5950-7025</p>
-                                <a
-                                    href="https://www.brassbleu-tokyo.brass.ne.jp/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 border-b"
-                                >
-                                    BRASS BLEU TOKYO
-                                    <ExternalLink className="w-2 h-auto" />
-                                </a>
-                            </div>
-                            <p className="mt-3 text-[0.5rem] text-foreground leading-relaxed">
-                                式場専用のエレベーターがございます
-                                <br />
-                                トラッド目白正面左手よりお入りください
-                            </p>
-                        </div>
-                    </FadeIn>
-                </div>
+                        {MAP_IMAGE ? (
+                            <img
+                                src={MAP_IMAGE.src}
+                                alt=""
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-accent" />
+                        )}
+                    </div>
+                </FadeIn>
             </section>
 
             {/* ═══ 7. FOOTER CTA ═══ */}
