@@ -25,6 +25,17 @@ const JUMP_V = 780;
 const INPUT_COOLDOWN_MS = 250;
 const RUN_FRAME_INTERVAL = 1 / 8;
 
+const GOAL_SCORE = 700;
+
+const STATIONS = [
+    { name: "浜松", score: 0 },
+    { name: "掛川", score: 79 },
+    { name: "静岡", score: 201 },
+    { name: "小田原", score: 452 },
+    { name: "新横浜", score: 610 },
+    { name: "東京", score: GOAL_SCORE },
+];
+
 const CHARACTER_DEFS: Record<
     CharacterKey,
     { label: string; urls: string[]; aspect: number }
@@ -115,9 +126,11 @@ function GameCanvas({
         dpr: 1,
         scale: 1,
         viewCenterX: WORLD_W / 2,
+        viewRight: WORLD_W,
 
         running: false,
         gameOver: false,
+        cleared: false,
         waitingToStart: true,
 
         inputLockUntil: 0,
@@ -182,6 +195,7 @@ function GameCanvas({
 
             const rect = canvas.getBoundingClientRect();
             g.viewCenterX = (cssW / 2 - rect.left) * (WORLD_W / cssW);
+            g.viewRight = g.viewCenterX * 2;
 
             ctx.setTransform(g.scale, 0, 0, g.scale, 0, 0);
             ctx.imageSmoothingEnabled = false;
@@ -200,6 +214,7 @@ function GameCanvas({
             g.player.onGround = true;
 
             g.gameOver = false;
+            g.cleared = false;
             g.running = false;
             g.waitingToStart = true;
 
@@ -232,7 +247,7 @@ function GameCanvas({
                 return;
             }
 
-            if (!g.running && g.gameOver) {
+            if (!g.running && (g.gameOver || g.cleared)) {
                 reset();
                 return;
             }
@@ -264,9 +279,18 @@ function GameCanvas({
         let raf = 0;
 
         const update = (dt: number) => {
-            if (!g.running || g.gameOver) return;
+            if (!g.running || g.gameOver || g.cleared) return;
 
             g.tAlive += dt;
+
+            const score = Math.floor(g.tAlive * 10);
+            if (score >= GOAL_SCORE) {
+                g.cleared = true;
+                g.running = false;
+                g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
+                return;
+            }
+
             g.speed = 260 + Math.min(240, g.tAlive * 18);
 
             // Sprite animation cycling (only while running on ground)
@@ -357,18 +381,63 @@ function GameCanvas({
                 ctx.fillRect(ob.x, GROUND_Y - ob.h, ob.w, ob.h);
             }
 
-            // Score
-            ctx.fillStyle = "#111";
-            ctx.font = "14px system-ui";
-            ctx.fillText(`SCORE ${Math.floor(g.tAlive * 10)}`, 10, 18);
+            // Progress bar
+            const score = Math.min(
+                GOAL_SCORE,
+                Math.floor(g.tAlive * 10),
+            );
+            const progress = score / GOAL_SCORE;
 
-            if (g.waitingToStart || g.gameOver) {
+            const barL = 28;
+            const barR = g.viewRight - 28;
+            const barW = barR - barL;
+            const barY = 9;
+            const barH = 3;
+
+            ctx.fillStyle = "#d8d2cb";
+            ctx.fillRect(barL, barY, barW, barH);
+            ctx.fillStyle = "#e8b4b8";
+            ctx.fillRect(barL, barY, barW * progress, barH);
+
+            for (const st of STATIONS) {
+                const sx = barL + barW * (st.score / GOAL_SCORE);
+                ctx.fillStyle = "#999";
+                ctx.fillRect(sx - 0.5, barY - 2, 1, barH + 4);
+            }
+
+            ctx.fillStyle = "#111";
+            ctx.font = "8px system-ui";
+            ctx.fillText("浜松", 4, 8);
+            ctx.textAlign = "end";
+            ctx.fillText("東京", g.viewRight - 4, 8);
+            ctx.textAlign = "start";
+
+            let currentStation = STATIONS[0].name;
+            for (const st of STATIONS) {
+                if (score >= st.score) currentStation = st.name;
+            }
+            ctx.font = "11px system-ui";
+            ctx.fillText(`${currentStation}  ${score} / ${GOAL_SCORE}`, 4, 26);
+
+            // Center messages
+            ctx.font = "14px system-ui";
+            if (g.waitingToStart) {
                 ctx.textAlign = "center";
+                ctx.fillText("TAP TO START", g.viewCenterX, 150);
+                ctx.textAlign = "start";
+            } else if (g.cleared) {
+                ctx.textAlign = "center";
+                ctx.fillText("東京駅到着！", g.viewCenterX, 140);
+                ctx.font = "11px system-ui";
                 ctx.fillText(
-                    g.waitingToStart ? "TAP TO START" : "GAME OVER",
+                    `TIME ${g.tAlive.toFixed(1)}s`,
                     g.viewCenterX,
-                    150,
+                    160,
                 );
+                ctx.textAlign = "start";
+            } else if (g.gameOver) {
+                ctx.textAlign = "center";
+                ctx.fillText("GAME OVER", g.viewCenterX, 150);
                 ctx.textAlign = "start";
             }
         };
