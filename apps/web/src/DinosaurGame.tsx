@@ -114,6 +114,7 @@ function GameCanvas({
     const game = useRef({
         dpr: 1,
         scale: 1,
+        viewCenterX: WORLD_W / 2,
 
         running: false,
         gameOver: false,
@@ -178,6 +179,9 @@ function GameCanvas({
             canvas.height = Math.floor(cssH * g.dpr);
 
             g.scale = (cssW * g.dpr) / WORLD_W;
+
+            const rect = canvas.getBoundingClientRect();
+            g.viewCenterX = (cssW / 2 - rect.left) * (WORLD_W / cssW);
 
             ctx.setTransform(g.scale, 0, 0, g.scale, 0, 0);
             ctx.imageSmoothingEnabled = false;
@@ -358,10 +362,14 @@ function GameCanvas({
             ctx.font = "14px system-ui";
             ctx.fillText(`SCORE ${Math.floor(g.tAlive * 10)}`, 10, 18);
 
-            if (g.waitingToStart) {
-                ctx.fillText("TAP TO START", 95, 150);
-            } else if (g.gameOver) {
-                ctx.fillText("GAME OVER", 105, 150);
+            if (g.waitingToStart || g.gameOver) {
+                ctx.textAlign = "center";
+                ctx.fillText(
+                    g.waitingToStart ? "TAP TO START" : "GAME OVER",
+                    g.viewCenterX,
+                    150,
+                );
+                ctx.textAlign = "start";
             }
         };
 
