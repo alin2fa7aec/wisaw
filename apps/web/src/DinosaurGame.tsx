@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
+import akira01 from "../assets/dinasaur/akira-01.png";
+import akira02 from "../assets/dinasaur/akira-02.png";
+import akira03 from "../assets/dinasaur/akira-03.png";
+import saki01 from "../assets/dinasaur/saki-01.png";
+import saki02 from "../assets/dinasaur/saki-02.png";
+import saki03 from "../assets/dinasaur/saki-03.png";
+
+type CharacterKey = "akira" | "saki";
 type Obstacle = { x: number; w: number; h: number };
 
 const WORLD_W = 360;
@@ -8,18 +17,100 @@ const GROUND_Y = 280;
 const PLAYER_W = 24;
 const PLAYER_H = 32;
 
-const GRAVITY = 2200; // world px / s^2
-const JUMP_V = 780; // world px / s
+const SPRITE_H = 42;
 
-const GO_INPUT_COOLDOWN_MS = 250;
+const GRAVITY = 2200;
+const JUMP_V = 780;
+
+const INPUT_COOLDOWN_MS = 250;
+const RUN_FRAME_INTERVAL = 1 / 8;
+
+const CHARACTER_DEFS: Record<
+    CharacterKey,
+    { label: string; urls: string[]; aspect: number }
+> = {
+    akira: {
+        label: "Akira",
+        urls: [akira01, akira02, akira03],
+        aspect: 238 / 367,
+    },
+    saki: {
+        label: "Saki",
+        urls: [saki01, saki02, saki03],
+        aspect: 279 / 318,
+    },
+};
 
 export const DinosaurGame = () => {
+    const [characterKey, setCharacterKey] = useState<CharacterKey | null>(null);
+
+    if (!characterKey) {
+        return <CharacterSelect onSelect={setCharacterKey} />;
+    }
+
+    return (
+        <GameCanvas
+            characterKey={characterKey}
+            onBack={() => setCharacterKey(null)}
+        />
+    );
+};
+
+function CharacterSelect({
+    onSelect,
+}: {
+    onSelect: (key: CharacterKey) => void;
+}) {
+    return (
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-10 px-6">
+            <p className="text-muted-foreground text-base tracking-wide">
+                キャラクターを選んでください
+            </p>
+            <div className="flex gap-10 py-10">
+                {(
+                    Object.entries(CHARACTER_DEFS) as [
+                        CharacterKey,
+                        (typeof CHARACTER_DEFS)[CharacterKey],
+                    ][]
+                ).map(([key, def]) => (
+                    <Button
+                        size="lg"
+                        variant="ghost"
+                        className="px-16 text-xs tracking-wider mb-6"
+                        onClick={() => onSelect(key)}
+                    >
+                        <div>
+                            <img
+                                src={def.urls[0]}
+                                alt={def.label}
+                                className="h-28 w-auto"
+                                style={{ imageRendering: "pixelated" }}
+                            />
+                            <span className="text-foreground/70 text-sm font-medium">
+                                {def.label}
+                            </span>
+                        </div>
+                    </Button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function GameCanvas({
+    characterKey,
+    onBack,
+}: {
+    characterKey: CharacterKey;
+    onBack: () => void;
+}) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    // 画面が横向きならブロック (「縦固定」を無理やり強制はできない) 
     const [isLandscape, setIsLandscape] = useState(false);
+    const [waitingToStart, setWaitingToStart] = useState(true);
 
-    // ゲーム状態はすべてrefに閉じ込める (React stateで毎フレーム更新とか論外) 
+    const charDef = CHARACTER_DEFS[characterKey];
+    const spriteW = Math.round(SPRITE_H * charDef.aspect);
+
     const game = useRef({
         dpr: 1,
         scale: 1,
@@ -28,10 +119,6 @@ export const DinosaurGame = () => {
         gameOver: false,
         waitingToStart: true,
 
-        // B) 1タップで停止表示、次でリスタート
-        // 0:通常 / 1:GO表示(次タップで「再開待ち」へ) / 2:再開待ち
-        gameOverTapStage: 0 as 0 | 1 | 2,
-
         inputLockUntil: 0,
 
         lastT: 0,
@@ -39,6 +126,10 @@ export const DinosaurGame = () => {
 
         speed: 260,
         spawnTimer: 0,
+
+        animTimer: 0,
+        animFrame: 0,
+        spriteFrames: [] as HTMLImageElement[],
 
         player: {
             x: 60,
@@ -57,10 +148,7 @@ export const DinosaurGame = () => {
 
     useEffect(() => {
         if (!mql) return;
-        const onChange = () => {
-            const land = mql.matches;
-            setIsLandscape(land);
-        };
+        const onChange = () => setIsLandscape(mql.matches);
         onChange();
         mql.addEventListener?.("change", onChange);
         return () => mql.removeEventListener?.("change", onChange);
@@ -74,19 +162,23 @@ export const DinosaurGame = () => {
 
         const g = game.current;
 
+        // Preload sprite images
+        g.spriteFrames = charDef.urls.map((url) => {
+            const img = new Image();
+            img.src = url;
+            return img;
+        });
+
         const resize = () => {
             const cssW = window.innerWidth;
             const cssH = window.innerHeight;
 
-            // DPR対応 (ここをサボるとボケる/当たり判定感が崩れる) 
             g.dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
             canvas.width = Math.floor(cssW * g.dpr);
             canvas.height = Math.floor(cssH * g.dpr);
 
-            // world -> device pixel
             g.scale = (cssW * g.dpr) / WORLD_W;
 
-            // 以後は world座標で描けるように変換
             ctx.setTransform(g.scale, 0, 0, g.scale, 0, 0);
             ctx.imageSmoothingEnabled = false;
         };
@@ -96,6 +188,8 @@ export const DinosaurGame = () => {
             g.speed = 260;
             g.spawnTimer = 0;
             g.obstacles = [];
+            g.animTimer = 0;
+            g.animFrame = 0;
 
             g.player.y = GROUND_Y - PLAYER_H;
             g.player.vy = 0;
@@ -105,8 +199,9 @@ export const DinosaurGame = () => {
             g.running = false;
             g.waitingToStart = true;
 
-            g.gameOverTapStage = 0;
             g.inputLockUntil = 0;
+
+            setWaitingToStart(true);
         };
 
         const aabb = (
@@ -123,30 +218,17 @@ export const DinosaurGame = () => {
         const jumpOrHandleGameOver = () => {
             const now = performance.now();
             if (now < g.inputLockUntil) return;
-
-            // 横向き中は入力を無視 (縦固定前提) 
             if (isLandscape) return;
 
-            // 待機中 -> ゲーム開始
             if (g.waitingToStart) {
                 g.waitingToStart = false;
                 g.running = true;
                 g.lastT = 0;
+                setWaitingToStart(false);
                 return;
             }
 
             if (!g.running && g.gameOver) {
-                // 1タップ目: GO表示を確定 -> 「再開待ち」に移行
-                if (g.gameOverTapStage === 1) {
-                    g.gameOverTapStage = 2;
-                    return;
-                }
-                // 2タップ目: リスタート
-                if (g.gameOverTapStage === 2) {
-                    reset();
-                    return;
-                }
-                // 状態が壊れてたら強制リセット (甘えない) 
                 reset();
                 return;
             }
@@ -166,7 +248,6 @@ export const DinosaurGame = () => {
             }
         };
 
-        // iOSでの謎スクロール/拡大対策: passive:falseでpreventDefault可能にする
         const onTouchMove = (e: TouchEvent) => e.preventDefault();
 
         window.addEventListener("resize", resize, { passive: true });
@@ -184,7 +265,16 @@ export const DinosaurGame = () => {
             g.tAlive += dt;
             g.speed = 260 + Math.min(240, g.tAlive * 18);
 
-            // player physics
+            // Sprite animation cycling (only while running on ground)
+            if (g.player.onGround) {
+                g.animTimer += dt;
+                if (g.animTimer >= RUN_FRAME_INTERVAL) {
+                    g.animTimer -= RUN_FRAME_INTERVAL;
+                    g.animFrame = (g.animFrame + 1) % 3;
+                }
+            }
+
+            // Player physics
             g.player.vy += GRAVITY * dt;
             g.player.y += g.player.vy * dt;
 
@@ -194,7 +284,7 @@ export const DinosaurGame = () => {
                 g.player.onGround = true;
             }
 
-            // spawn obstacles
+            // Spawn obstacles
             g.spawnTimer -= dt;
             if (g.spawnTimer <= 0) {
                 const h = 18 + Math.random() * 28;
@@ -205,14 +295,13 @@ export const DinosaurGame = () => {
                 g.spawnTimer = Math.max(0.45, base + Math.random() * 0.35);
             }
 
-            // move + collision
+            // Move + collision
             const px = g.player.x;
             const py = g.player.y;
 
             for (const ob of g.obstacles) {
                 ob.x -= g.speed * dt;
 
-                // 当たり判定は少し甘く (スマホでストレスを増やすな) 
                 const pad = 3;
                 const hit = aabb(
                     px + pad,
@@ -228,40 +317,43 @@ export const DinosaurGame = () => {
                 if (hit) {
                     g.gameOver = true;
                     g.running = false;
-
-                    g.gameOverTapStage = 1;
-                    g.inputLockUntil = performance.now() + GO_INPUT_COOLDOWN_MS;
+                    g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
                     break;
                 }
             }
 
-            // cleanup
             g.obstacles = g.obstacles.filter((o) => o.x + o.w > -40);
         };
 
         const render = () => {
-            // clear in device space (transformの影響を受けないように)
             ctx.save();
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
 
-            // background (white)
-            // ctxはすでに world->device transform が入ってる前提
-
-            // ground
+            // Ground line
             ctx.fillStyle = "#111";
             ctx.fillRect(0, GROUND_Y, WORLD_W, 3);
 
-            // player
-            ctx.fillRect(g.player.x, g.player.y, PLAYER_W, PLAYER_H);
+            // Player — sprite or fallback rect
+            const frameIdx = g.player.onGround ? g.animFrame : 1;
+            const sprite = g.spriteFrames[frameIdx];
 
-            // obstacles
+            if (sprite?.complete && sprite.naturalWidth > 0) {
+                const drawX = g.player.x + (PLAYER_W - spriteW) / 2;
+                const drawY = g.player.y + PLAYER_H - SPRITE_H;
+                ctx.drawImage(sprite, drawX, drawY, spriteW, SPRITE_H);
+            } else {
+                ctx.fillRect(g.player.x, g.player.y, PLAYER_W, PLAYER_H);
+            }
+
+            // Obstacles
+            ctx.fillStyle = "#111";
             for (const ob of g.obstacles) {
                 ctx.fillRect(ob.x, GROUND_Y - ob.h, ob.w, ob.h);
             }
 
-            // UI text (world座標で描く。端末が変わっても相対サイズは一定) 
+            // Score
             ctx.fillStyle = "#111";
             ctx.font = "14px system-ui";
             ctx.fillText(`SCORE ${Math.floor(g.tAlive * 10)}`, 10, 18);
@@ -269,13 +361,7 @@ export const DinosaurGame = () => {
             if (g.waitingToStart) {
                 ctx.fillText("TAP TO START", 95, 150);
             } else if (g.gameOver) {
-                const msg =
-                    g.gameOverTapStage === 1
-                        ? "GAME OVER"
-                        : g.gameOverTapStage === 2
-                          ? "TAP TO RESTART"
-                          : "GAME OVER";
-                ctx.fillText(msg, 95, 150);
+                ctx.fillText("GAME OVER", 105, 150);
             }
         };
 
@@ -284,10 +370,8 @@ export const DinosaurGame = () => {
             let dt = (ts - g.lastT) / 1000;
             g.lastT = ts;
 
-            // タブ復帰や負荷でdtが巨大化 -> ワープ防止
             dt = Math.min(dt, 1 / 30);
 
-            // 横向きなら進行停止 (描画だけはする) 
             if (!isLandscape) update(dt);
             render();
 
@@ -302,33 +386,32 @@ export const DinosaurGame = () => {
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("touchmove", onTouchMove);
         };
-    }, [isLandscape]);
+    }, [isLandscape, charDef.urls, spriteW]);
 
     return (
         <div className="w-full">
+            <Button
+                size="lg"
+                className={`fixed bottom-24 left-1/2 z-20 -translate-x-1/2 px-16 text-xs tracking-wider transition-opacity ${waitingToStart ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                onClick={() => onBack()}
+            >
+                キャラ変更
+            </Button>
+
             <div
                 className="inset-0 overflow-hidden overscroll-none touch-none select-none"
-                // 追加で保険 (Tailwindのtouch-noneと同等だが明示) 
                 style={{ touchAction: "none" }}
                 onPointerDown={(e) => {
-                    // ここでpreventDefaultしないと端末によっては変な挙動が混ざる
                     e.preventDefault();
-
-                    // jump処理はeffect内関数なので、ここでは「keydownと同様に」したいところだが、
-                    // React経由で直接呼ぶより windowイベントに寄せる方が事故りにくい。
-                    // なので bodyへ投げない。代わりにカスタムイベントで通知。
                     window.dispatchEvent(new Event("app-jump"));
                 }}
             >
-                {/* Canvas */}
                 <canvas
                     ref={canvasRef}
                     className="block h-screen w-screen"
-                    // 念のためここにも
                     style={{ touchAction: "none" }}
                 />
 
-                {/* 横向きブロック */}
                 {isLandscape && (
                     <div className="fixed inset-0 z-10 grid place-items-center bg-black/85 px-6 text-center text-white">
                         <div className="space-y-2">
@@ -342,23 +425,15 @@ export const DinosaurGame = () => {
                     </div>
                 )}
 
-                {/* Reactのpointerdownからゲームへ通知する受け口 (イベントで接続)  */}
                 <JumpBridge />
             </div>
         </div>
     );
-};
+}
 
-/**
- * App本体のeffectスコープ外にあるpointerdownから、ゲームロジックに安全に渡すためのブリッジ。
- *  (Reactの再レンダでハンドラ参照が壊れる系の事故を避ける) 
- */
 function JumpBridge() {
     useEffect(() => {
         const handler = () => {
-            // keydownと同じ経路に寄せるため、ArrowUpの疑似イベントを投げるのは雑。
-            // ここは “直接呼べない” ので、素直にkeydown経路を使わず、別で処理するのが本筋。
-            // だが今回は最小で済ませるため、スペースキーイベントを発火させて既存処理に乗せる。
             const ev = new KeyboardEvent("keydown", { code: "Space" });
             window.dispatchEvent(ev);
         };
