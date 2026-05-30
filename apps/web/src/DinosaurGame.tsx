@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import akira01 from "../assets/dinasaur/akira-01.png";
-import akira02 from "../assets/dinasaur/akira-02.png";
-import akira03 from "../assets/dinasaur/akira-03.png";
-import saki01 from "../assets/dinasaur/saki-01.png";
-import saki02 from "../assets/dinasaur/saki-02.png";
-import saki03 from "../assets/dinasaur/saki-03.png";
+const IMG = "/images/dinasaur";
 
 type CharacterKey = "akira" | "saki";
 type Obstacle = { x: number; w: number; h: number };
@@ -42,12 +37,20 @@ const CHARACTER_DEFS: Record<
 > = {
     akira: {
         label: "Akira",
-        urls: [akira01, akira02, akira03],
+        urls: [
+            `${IMG}/akira-01.png`,
+            `${IMG}/akira-02.png`,
+            `${IMG}/akira-03.png`,
+        ],
         aspect: 238 / 367,
     },
     saki: {
         label: "Saki",
-        urls: [saki01, saki02, saki03],
+        urls: [
+            `${IMG}/saki-01.png`,
+            `${IMG}/saki-02.png`,
+            `${IMG}/saki-03.png`,
+        ],
         aspect: 279 / 318,
     },
 };
