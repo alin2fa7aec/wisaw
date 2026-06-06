@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 
 const IMG = "/images/dinasaur";
@@ -80,7 +81,7 @@ function CharacterSelect({
             <p className="text-muted-foreground text-base tracking-wide">
                 キャラクターを選んでください
             </p>
-            <div className="flex gap-10 py-10">
+            <div className="flex gap-4 py-10">
                 {(
                     Object.entries(CHARACTER_DEFS) as [
                         CharacterKey,
@@ -88,9 +89,10 @@ function CharacterSelect({
                     ][]
                 ).map(([key, def]) => (
                     <Button
+                        key={key}
                         size="lg"
                         variant="ghost"
-                        className="px-16 text-xs tracking-wider mb-6"
+                        className="px-4 text-xs tracking-wider mb-6"
                         onClick={() => onSelect(key)}
                     >
                         <div>
@@ -196,9 +198,8 @@ function GameCanvas({
 
             g.scale = (cssW * g.dpr) / WORLD_W;
 
-            const rect = canvas.getBoundingClientRect();
-            g.viewCenterX = (cssW / 2 - rect.left) * (WORLD_W / cssW);
-            g.viewRight = g.viewCenterX * 2;
+            g.viewCenterX = WORLD_W / 2;
+            g.viewRight = WORLD_W;
 
             ctx.setTransform(g.scale, 0, 0, g.scale, 0, 0);
             ctx.imageSmoothingEnabled = false;
@@ -468,46 +469,50 @@ function GameCanvas({
         };
     }, [isLandscape, charDef.urls, spriteW]);
 
-    return (
-        <div className="w-full">
-            <Button
-                size="lg"
-                className={`fixed bottom-24 left-1/2 z-20 -translate-x-1/2 px-16 text-xs tracking-wider transition-opacity ${waitingToStart ? "opacity-100" : "pointer-events-none opacity-0"}`}
-                onClick={() => onBack()}
-            >
-                キャラ変更
-            </Button>
+    return createPortal(
+        <div className="bg-background fixed inset-0 z-50 overflow-hidden">
+            <canvas
+                ref={canvasRef}
+                className="block h-full w-full"
+                style={{ touchAction: "none" }}
+            />
 
             <div
-                className="inset-0 overflow-hidden overscroll-none touch-none select-none"
+                className="absolute inset-0 z-10 touch-none select-none"
                 style={{ touchAction: "none" }}
                 onPointerDown={(e) => {
                     e.preventDefault();
                     window.dispatchEvent(new Event("app-jump"));
                 }}
-            >
-                <canvas
-                    ref={canvasRef}
-                    className="block h-screen w-screen"
-                    style={{ touchAction: "none" }}
-                />
+            />
 
-                {isLandscape && (
-                    <div className="fixed inset-0 z-10 grid place-items-center bg-black/85 px-6 text-center text-white">
-                        <div className="space-y-2">
-                            <div className="text-base font-semibold">
-                                縦画面に戻せ
-                            </div>
-                            <div className="text-sm opacity-80">
-                                横向きでは遊ばせない。
-                            </div>
+            <Button
+                size="lg"
+                className={`absolute bottom-24 left-1/2 z-20 -translate-x-1/2 px-8 text-xs tracking-wider transition-opacity ${waitingToStart ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onBack();
+                }}
+            >
+                キャラ変更
+            </Button>
+
+            {isLandscape && (
+                <div className="absolute inset-0 z-30 grid place-items-center bg-black/85 px-6 text-center text-white">
+                    <div className="space-y-2">
+                        <div className="text-base font-semibold">
+                            縦画面に戻せ
+                        </div>
+                        <div className="text-sm opacity-80">
+                            横向きでは遊ばせない。
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                <JumpBridge />
-            </div>
-        </div>
+            <JumpBridge />
+        </div>,
+        document.body,
     );
 }
 
