@@ -22,6 +22,7 @@ const INPUT_COOLDOWN_MS = 250;
 const RUN_FRAME_INTERVAL = 1 / 8;
 
 const GOAL_SCORE = 700;
+const WINNING_RUN_DURATION = 2.0;
 
 const STATIONS = [
     { name: "浜松", score: 0 },
@@ -136,6 +137,8 @@ function GameCanvas({
         running: false,
         gameOver: false,
         cleared: false,
+        winningRun: false,
+        winRunTimer: 0,
         waitingToStart: true,
 
         inputLockUntil: 0,
@@ -219,6 +222,8 @@ function GameCanvas({
 
             g.gameOver = false;
             g.cleared = false;
+            g.winningRun = false;
+            g.winRunTimer = 0;
             g.running = false;
             g.waitingToStart = true;
 
@@ -242,6 +247,7 @@ function GameCanvas({
             const now = performance.now();
             if (now < g.inputLockUntil) return;
             if (isLandscape) return;
+            if (g.winningRun) return;
 
             if (g.waitingToStart) {
                 g.waitingToStart = false;
@@ -285,19 +291,51 @@ function GameCanvas({
         const update = (dt: number) => {
             if (!g.running || g.gameOver || g.cleared) return;
 
+            if (g.winningRun) {
+                g.winRunTimer += dt;
+
+                if (g.player.onGround) {
+                    g.animTimer += dt;
+                    if (g.animTimer >= RUN_FRAME_INTERVAL) {
+                        g.animTimer -= RUN_FRAME_INTERVAL;
+                        g.animFrame = (g.animFrame + 1) % 3;
+                    }
+                }
+
+                g.player.vy += GRAVITY * dt;
+                g.player.y += g.player.vy * dt;
+                if (g.player.y >= GROUND_Y - PLAYER_H) {
+                    g.player.y = GROUND_Y - PLAYER_H;
+                    g.player.vy = 0;
+                    g.player.onGround = true;
+                }
+
+                g.speed = Math.max(60, g.speed - 300 * dt);
+
+                for (const ob of g.obstacles) {
+                    ob.x -= g.speed * dt;
+                }
+                g.obstacles = g.obstacles.filter((o) => o.x + o.w > -40);
+
+                if (g.winRunTimer >= WINNING_RUN_DURATION) {
+                    g.cleared = true;
+                    g.running = false;
+                    g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
+                }
+                return;
+            }
+
             g.tAlive += dt;
 
             const score = Math.floor(g.tAlive * 10);
             if (score >= GOAL_SCORE) {
-                g.cleared = true;
-                g.running = false;
-                g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
+                g.winningRun = true;
+                g.winRunTimer = 0;
                 return;
             }
 
             g.speed = 260 + Math.min(240, g.tAlive * 18);
 
-            // Sprite animation cycling (only while running on ground)
             if (g.player.onGround) {
                 g.animTimer += dt;
                 if (g.animTimer >= RUN_FRAME_INTERVAL) {
@@ -306,7 +344,6 @@ function GameCanvas({
                 }
             }
 
-            // Player physics
             g.player.vy += GRAVITY * dt;
             g.player.y += g.player.vy * dt;
 
@@ -316,7 +353,6 @@ function GameCanvas({
                 g.player.onGround = true;
             }
 
-            // Spawn obstacles
             g.spawnTimer -= dt;
             if (g.spawnTimer <= 0) {
                 const h = 18 + Math.random() * 28;
@@ -327,7 +363,6 @@ function GameCanvas({
                 g.spawnTimer = Math.max(0.45, base + Math.random() * 0.35);
             }
 
-            // Move + collision
             const px = g.player.x;
             const py = g.player.y;
 
@@ -426,6 +461,20 @@ function GameCanvas({
                 ctx.textAlign = "center";
                 ctx.fillText("TAP TO START", g.viewCenterX, 150);
                 ctx.textAlign = "start";
+            } else if (g.winningRun) {
+                ctx.save();
+                ctx.textAlign = "center";
+                const alpha =
+                    0.6 + 0.4 * Math.sin(g.winRunTimer * 10);
+                ctx.globalAlpha = alpha;
+                ctx.font = "16px system-ui";
+                ctx.fillText(
+                    "🔔 GOAL! 🔔",
+                    g.viewCenterX,
+                    150,
+                );
+                ctx.globalAlpha = 1;
+                ctx.restore();
             } else if (g.cleared) {
                 ctx.textAlign = "center";
                 ctx.fillText("東京駅到着！", g.viewCenterX, 140);
