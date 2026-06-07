@@ -354,7 +354,7 @@ function GameCanvas({
             }
 
             g.spawnTimer -= dt;
-            if (g.spawnTimer <= 0) {
+            if (g.spawnTimer <= 0 && score < GOAL_SCORE - 20) {
                 const h = 18 + Math.random() * 28;
                 const w = 14 + Math.random() * 18;
                 g.obstacles.push({ x: WORLD_W + 40, w, h });
@@ -464,15 +464,10 @@ function GameCanvas({
             } else if (g.winningRun) {
                 ctx.save();
                 ctx.textAlign = "center";
-                const alpha =
-                    0.6 + 0.4 * Math.sin(g.winRunTimer * 10);
+                const alpha = 0.6 + 0.4 * Math.sin(g.winRunTimer * 10);
                 ctx.globalAlpha = alpha;
                 ctx.font = "16px system-ui";
-                ctx.fillText(
-                    "🔔 GOAL! 🔔",
-                    g.viewCenterX,
-                    150,
-                );
+                ctx.fillText("🔔 GOAL! 🔔", g.viewCenterX, 150);
                 ctx.globalAlpha = 1;
                 ctx.restore();
             } else if (g.cleared) {
