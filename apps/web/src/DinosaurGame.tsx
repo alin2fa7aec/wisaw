@@ -15,8 +15,8 @@ const PLAYER_H = 32;
 
 const SPRITE_H = 42;
 
-const GRAVITY = 2200;
-const JUMP_V = 780;
+const GRAVITY = 2700;
+const JUMP_V = 700;
 
 const INPUT_COOLDOWN_MS = 250;
 const RUN_FRAME_INTERVAL = 1 / 8;
@@ -386,10 +386,7 @@ function GameCanvas({
             }
 
             // Progress bar
-            const score = Math.min(
-                GOAL_SCORE,
-                Math.floor(g.tAlive * 10),
-            );
+            const score = Math.min(GOAL_SCORE, Math.floor(g.tAlive * 10));
             const progress = score / GOAL_SCORE;
 
             const barL = 28;
