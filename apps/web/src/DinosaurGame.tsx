@@ -132,6 +132,7 @@ function GameCanvas({
     const [isLandscape, setIsLandscape] = useState(false);
     const [waitingToStart, setWaitingToStart] = useState(true);
     const [isCleared, setIsCleared] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
 
     const charDef = CHARACTER_DEFS[characterKey];
     const spriteW = Math.round(SPRITE_H * charDef.aspect);
@@ -236,6 +237,7 @@ function GameCanvas({
             g.animTimer = 0;
             g.animFrame = 0;
 
+            g.player.x = 60;
             g.player.y = GROUND_Y - PLAYER_H;
             g.player.vy = 0;
             g.player.onGround = true;
@@ -252,6 +254,7 @@ function GameCanvas({
 
             setWaitingToStart(true);
             setIsCleared(false);
+            setIsGameOver(false);
         };
 
         const aabb = (
@@ -279,8 +282,17 @@ function GameCanvas({
                 return;
             }
 
-            if (!g.running && (g.gameOver || g.cleared)) {
+            if (!g.running && g.cleared) {
                 reset();
+                return;
+            }
+
+            if (!g.running && g.gameOver) {
+                reset();
+                g.waitingToStart = false;
+                g.running = true;
+                g.lastT = 0;
+                setWaitingToStart(false);
                 return;
             }
 
@@ -338,14 +350,20 @@ function GameCanvas({
 
                 g.speed = Math.max(60, g.speed - 300 * dt);
 
+                const playerStopX = WORLD_W / 2 - PLAYER_W * 2;
+                if (g.player.x < playerStopX) {
+                    g.player.x += 80 * dt;
+                    if (g.player.x > playerStopX) g.player.x = playerStopX;
+                }
+
                 for (const ob of g.obstacles) {
                     ob.x -= g.speed * dt;
                 }
                 g.obstacles = g.obstacles.filter((o) => o.x + o.w > -40);
 
-                const stopX = WORLD_W / 2 - PLAYER_W / 2;
+                const greeterStopX = WORLD_W / 2 + PLAYER_W;
                 g.greeterX -= g.speed * dt;
-                if (g.greeterX < stopX) g.greeterX = stopX;
+                if (g.greeterX < greeterStopX) g.greeterX = greeterStopX;
 
                 if (g.winRunTimer >= WINNING_RUN_DURATION) {
                     g.cleared = true;
@@ -417,6 +435,7 @@ function GameCanvas({
                     g.gameOver = true;
                     g.running = false;
                     g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
+                    setIsGameOver(true);
                     break;
                 }
             }
@@ -534,7 +553,10 @@ function GameCanvas({
                 ctx.textAlign = "start";
             } else if (g.gameOver) {
                 ctx.textAlign = "center";
-                ctx.fillText("GAME OVER", g.viewCenterX, 150);
+                ctx.fillText("GAME OVER", g.viewCenterX, 145);
+                ctx.font = "10px system-ui";
+                ctx.fillStyle = "#888";
+                ctx.fillText("TAP TO RESTART", g.viewCenterX, 165);
                 ctx.textAlign = "start";
             }
         };
@@ -580,7 +602,7 @@ function GameCanvas({
             />
 
             <div
-                className={`absolute bottom-24 left-1/2 z-20 -translate-x-1/2 flex gap-4 transition-opacity ${waitingToStart || isCleared ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                className={`absolute bottom-24 left-1/2 z-20 -translate-x-1/2 flex gap-4 transition-opacity ${waitingToStart || isCleared || isGameOver ? "opacity-100" : "pointer-events-none opacity-0"}`}
             >
                 <Button
                     size="lg"
