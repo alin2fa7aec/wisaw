@@ -297,6 +297,10 @@ function GameCanvas({
                 e.preventDefault();
                 jumpOrHandleGameOver();
             }
+            if (e.code === "KeyG" && g.running && !g.winningRun) {
+                g.tAlive = GOAL_SCORE / 10 - 0.5;
+                g.obstacles = [];
+            }
         };
 
         const onTouchMove = (e: TouchEvent) => e.preventDefault();
