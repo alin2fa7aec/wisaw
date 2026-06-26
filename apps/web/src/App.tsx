@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,14 +52,17 @@ const App = () => {
     return (
         <TapPetals>
         <div className="bg-background">
-            <Button
-                variant="ghost"
-                size="icon"
-                className="fixed top-4 right-4 z-40"
-                onClick={() => setDrawerOpen(true)}
-            >
-                <MenuIcon className="size-6" />
-            </Button>
+            {createPortal(
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="fixed top-4 right-4 z-[60]"
+                    onClick={() => setDrawerOpen(true)}
+                >
+                    <MenuIcon className="size-6" />
+                </Button>,
+                document.body,
+            )}
 
             <Drawer
                 direction="right"
