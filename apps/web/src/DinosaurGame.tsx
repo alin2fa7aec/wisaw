@@ -57,7 +57,11 @@ const CHARACTER_DEFS: Record<
     },
 };
 
-export const DinosaurGame = () => {
+export const DinosaurGame = ({
+    onNavigateHome,
+}: {
+    onNavigateHome: () => void;
+}) => {
     const [characterKey, setCharacterKey] = useState<CharacterKey | null>(null);
 
     if (!characterKey) {
@@ -68,6 +72,7 @@ export const DinosaurGame = () => {
         <GameCanvas
             characterKey={characterKey}
             onBack={() => setCharacterKey(null)}
+            onNavigateHome={onNavigateHome}
         />
     );
 };
@@ -117,13 +122,16 @@ function CharacterSelect({
 function GameCanvas({
     characterKey,
     onBack,
+    onNavigateHome,
 }: {
     characterKey: CharacterKey;
     onBack: () => void;
+    onNavigateHome: () => void;
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [isLandscape, setIsLandscape] = useState(false);
     const [waitingToStart, setWaitingToStart] = useState(true);
+    const [isCleared, setIsCleared] = useState(false);
 
     const charDef = CHARACTER_DEFS[characterKey];
     const spriteW = Math.round(SPRITE_H * charDef.aspect);
@@ -230,6 +238,7 @@ function GameCanvas({
             g.inputLockUntil = 0;
 
             setWaitingToStart(true);
+            setIsCleared(false);
         };
 
         const aabb = (
@@ -321,6 +330,7 @@ function GameCanvas({
                     g.cleared = true;
                     g.running = false;
                     g.inputLockUntil = performance.now() + INPUT_COOLDOWN_MS;
+                    setIsCleared(true);
                 }
                 return;
             }
@@ -527,16 +537,32 @@ function GameCanvas({
                 }}
             />
 
-            <Button
-                size="lg"
-                className={`absolute bottom-24 left-1/2 z-20 -translate-x-1/2 px-8 text-xs tracking-wider transition-opacity ${waitingToStart ? "opacity-100" : "pointer-events-none opacity-0"}`}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onBack();
-                }}
+            <div
+                className={`absolute bottom-24 left-1/2 z-20 -translate-x-1/2 flex gap-4 transition-opacity ${waitingToStart || isCleared ? "opacity-100" : "pointer-events-none opacity-0"}`}
             >
-                キャラ変更
-            </Button>
+                <Button
+                    size="lg"
+                    className="px-8 text-xs tracking-wider"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onBack();
+                    }}
+                >
+                    キャラ変更
+                </Button>
+                {isCleared && (
+                    <Button
+                        size="lg"
+                        className="px-8 text-xs tracking-wider"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigateHome();
+                        }}
+                    >
+                        Home
+                    </Button>
+                )}
+            </div>
 
             {isLandscape && (
                 <div className="absolute inset-0 z-30 grid place-items-center bg-black/85 px-6 text-center text-white">

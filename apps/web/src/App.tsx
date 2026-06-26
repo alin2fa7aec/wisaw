@@ -127,7 +127,11 @@ const App = () => {
                                 {activeContent === "rsvp" && <Rsvp />}
                                 {activeContent === "gallery" && <Gallery />}
                                 {activeContent === "dinosaur-game" && (
-                                    <DinosaurGame />
+                                    <DinosaurGame
+                                        onNavigateHome={() =>
+                                            setActiveContent("home")
+                                        }
+                                    />
                                 )}
                             </div>
                         </Suspense>
