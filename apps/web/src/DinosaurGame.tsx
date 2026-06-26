@@ -93,7 +93,7 @@ function CharacterSelect({
                         key={key}
                         size="lg"
                         variant="ghost"
-                        className="px-4 text-xs tracking-wider mb-6"
+                        className="px-4 text-xs tracking-wider mb-6 hover:bg-transparent"
                         onClick={() => onSelect(key)}
                     >
                         <div>
