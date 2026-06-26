@@ -136,6 +136,10 @@ function GameCanvas({
     const charDef = CHARACTER_DEFS[characterKey];
     const spriteW = Math.round(SPRITE_H * charDef.aspect);
 
+    const otherKey: CharacterKey = characterKey === "akira" ? "saki" : "akira";
+    const otherDef = CHARACTER_DEFS[otherKey];
+    const greeterSpriteW = Math.round(SPRITE_H * otherDef.aspect);
+
     const game = useRef({
         dpr: 1,
         scale: 1,
@@ -160,6 +164,8 @@ function GameCanvas({
         animTimer: 0,
         animFrame: 0,
         spriteFrames: [] as HTMLImageElement[],
+        greeterFrames: [] as HTMLImageElement[],
+        greeterX: WORLD_W + 100,
 
         player: {
             x: 60,
@@ -194,6 +200,12 @@ function GameCanvas({
 
         // Preload sprite images
         g.spriteFrames = charDef.urls.map((url) => {
+            const img = new Image();
+            img.src = url;
+            return img;
+        });
+
+        g.greeterFrames = otherDef.urls.map((url) => {
             const img = new Image();
             img.src = url;
             return img;
@@ -236,6 +248,7 @@ function GameCanvas({
             g.waitingToStart = true;
 
             g.inputLockUntil = 0;
+            g.greeterX = WORLD_W + 100;
 
             setWaitingToStart(true);
             setIsCleared(false);
@@ -326,6 +339,10 @@ function GameCanvas({
                 }
                 g.obstacles = g.obstacles.filter((o) => o.x + o.w > -40);
 
+                const stopX = WORLD_W / 2 - PLAYER_W / 2;
+                g.greeterX -= g.speed * dt;
+                if (g.greeterX < stopX) g.greeterX = stopX;
+
                 if (g.winRunTimer >= WINNING_RUN_DURATION) {
                     g.cleared = true;
                     g.running = false;
@@ -341,6 +358,7 @@ function GameCanvas({
             if (score >= GOAL_SCORE) {
                 g.winningRun = true;
                 g.winRunTimer = 0;
+                g.greeterX = WORLD_W + 100;
                 return;
             }
 
@@ -424,6 +442,26 @@ function GameCanvas({
                 ctx.fillRect(g.player.x, g.player.y, PLAYER_W, PLAYER_H);
             }
 
+            // Greeter (the other character welcoming the player at the goal)
+            if (g.winningRun || g.cleared) {
+                const greeterSprite = g.greeterFrames[0];
+                if (greeterSprite?.complete && greeterSprite.naturalWidth > 0) {
+                    const gx = g.greeterX + (PLAYER_W - greeterSpriteW) / 2;
+                    const gy = GROUND_Y - SPRITE_H;
+                    ctx.save();
+                    ctx.translate(gx + greeterSpriteW, gy);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(
+                        greeterSprite,
+                        0,
+                        0,
+                        greeterSpriteW,
+                        SPRITE_H,
+                    );
+                    ctx.restore();
+                }
+            }
+
             // Obstacles
             ctx.fillStyle = "#111";
             for (const ob of g.obstacles) {
@@ -477,7 +515,7 @@ function GameCanvas({
                 const alpha = 0.6 + 0.4 * Math.sin(g.winRunTimer * 10);
                 ctx.globalAlpha = alpha;
                 ctx.font = "16px system-ui";
-                ctx.fillText("🔔 GOAL! 🔔", g.viewCenterX, 150);
+                ctx.fillText("GOAL! ", g.viewCenterX, 150);
                 ctx.globalAlpha = 1;
                 ctx.restore();
             } else if (g.cleared) {
@@ -518,7 +556,7 @@ function GameCanvas({
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("touchmove", onTouchMove);
         };
-    }, [isLandscape, charDef.urls, spriteW]);
+    }, [isLandscape, charDef.urls, spriteW, otherDef.urls, greeterSpriteW]);
 
     return createPortal(
         <div className="bg-background fixed inset-0 z-50 overflow-hidden">
