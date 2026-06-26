@@ -425,7 +425,7 @@ function GameCanvas({
             const progress = score / GOAL_SCORE;
 
             const barL = 28;
-            const barR = g.viewRight - 28;
+            const barR = g.viewRight - 49;
             const barW = barR - barL;
             const barY = 9;
             const barH = 3;
@@ -443,9 +443,9 @@ function GameCanvas({
 
             ctx.fillStyle = "#111";
             ctx.font = "8px system-ui";
-            ctx.fillText("浜松", 4, 8);
+            ctx.fillText("浜松", 4, 13);
             ctx.textAlign = "end";
-            ctx.fillText("東京", g.viewRight - 4, 8);
+            ctx.fillText("東京", g.viewRight - 28, 13);
             ctx.textAlign = "start";
 
             let currentStation = STATIONS[0].name;
@@ -453,7 +453,7 @@ function GameCanvas({
                 if (score >= st.score) currentStation = st.name;
             }
             ctx.font = "11px system-ui";
-            ctx.fillText(`${currentStation}  ${score} / ${GOAL_SCORE}`, 4, 26);
+            ctx.fillText(`${currentStation} `, 4, 29);
 
             // Center messages
             ctx.font = "14px system-ui";
