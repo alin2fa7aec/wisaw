@@ -325,7 +325,7 @@ export const Home = ({
                         {
                             time: "10:45",
                             title: "受付締切",
-                            text: "スムーズな進行のため10時45分までに\n受付をお済ませくださいますようお願いいたします\nやむを得ず遅れる場合は 会場スタッフにお声がけください",
+                            text: "スムーズな進行のため10時45分までに\n受付をお済ませくださいますようお願いいたします",
                             highlight: true,
                         },
                         {
@@ -409,7 +409,7 @@ export const Home = ({
                     <div className="px-7 flex flex-col gap-4 leading-[1.9] text-text-soft text-[0.6rem]">
                         <FadeIn delay={250}>
                             <p>
-                                ゲスト更衣室が3室ございます
+                                ゲスト更衣室をご用意しております
                                 <br />
                                 10時から11時のあいだと14時以降の時間帯にご利用いただけます
                             </p>
@@ -511,7 +511,7 @@ export const Home = ({
                 </FadeIn>
                 <FadeIn delay={400}>
                     <p className="text-xs text-text-soft">
-                        99月99日(極) 迄にご回答いただければ幸に存じます
+                        8月23日(日) 迄にご回答いただければ幸に存じます
                     </p>
                 </FadeIn>
 

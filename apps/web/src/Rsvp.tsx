@@ -286,7 +286,7 @@ export const Rsvp = () => {
 
             <div className="px-5 pb-12 flex flex-col gap-10">
                 <p className="text-[0.65rem] text-text-mute text-right">
-                    99月99日(極) 迄にご回答ください
+                    8月23日(日) 迄にご回答ください
                     <br />
                     <span className="text-primary">*</span> は必須項目です
                 </p>
