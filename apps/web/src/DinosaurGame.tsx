@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 const IMG = "/images/dinasaur";
 
 type CharacterKey = "akira" | "saki";
-type Obstacle = { x: number; w: number; h: number };
+type ObstacleKind = "billboard" | "tree";
+type Obstacle = { x: number; w: number; h: number; kind: ObstacleKind };
 
 const WORLD_W = 360;
 const GROUND_Y = 280;
+const HORIZON_Y = GROUND_Y - 24;
+
+const CAM_TOP = 135;
+const CAM_H = 180;
 
 const PLAYER_W = 24;
 const PLAYER_H = 32;
@@ -23,6 +28,13 @@ const RUN_FRAME_INTERVAL = 1 / 8;
 
 const GOAL_SCORE = 700;
 const WINNING_RUN_DURATION = 2.0;
+
+const CLOUD_H = 10;
+const CLOUD_W = Math.round(CLOUD_H * (657 / 214));
+const FUJI_H = 80;
+const FUJI_W = Math.round(FUJI_H * (3797 / 823));
+const BILLBOARD_ASPECT = 92 / 86;
+const TREE_ASPECT = 44 / 118;
 
 const STATIONS = [
     { name: "浜松", score: 0 },
@@ -168,6 +180,16 @@ function GameCanvas({
         greeterFrames: [] as HTMLImageElement[],
         greeterX: WORLD_W + 100,
 
+        cloudImg: null as HTMLImageElement | null,
+        fujiImg: null as HTMLImageElement | null,
+        billboardImg: null as HTMLImageElement | null,
+        treeImg: null as HTMLImageElement | null,
+        clouds: [
+            { x: 50, y: 160 },
+            { x: 190, y: 190 },
+            { x: 310, y: 150 },
+        ],
+
         player: {
             x: 60,
             y: GROUND_Y - PLAYER_H,
@@ -212,6 +234,16 @@ function GameCanvas({
             return img;
         });
 
+        const loadImg = (src: string) => {
+            const img = new Image();
+            img.src = src;
+            return img;
+        };
+        g.cloudImg = loadImg(`${IMG}/cloud.png`);
+        g.fujiImg = loadImg(`${IMG}/mount_fuji.png`);
+        g.billboardImg = loadImg(`${IMG}/billboard.png`);
+        g.treeImg = loadImg(`${IMG}/tree.png`);
+
         const resize = () => {
             const cssW = window.innerWidth;
             const cssH = window.innerHeight;
@@ -251,6 +283,11 @@ function GameCanvas({
 
             g.inputLockUntil = 0;
             g.greeterX = WORLD_W + 100;
+            g.clouds = [
+                { x: 50, y: 160 },
+                { x: 190, y: 190 },
+                { x: 310, y: 150 },
+            ];
 
             setWaitingToStart(true);
             setIsCleared(false);
@@ -327,6 +364,14 @@ function GameCanvas({
         let raf = 0;
 
         const update = (dt: number) => {
+            if (g.running) {
+                const cloudSpeed = g.speed * 0.08;
+                for (const c of g.clouds) {
+                    c.x -= cloudSpeed * dt;
+                    if (c.x < -CLOUD_W) c.x = WORLD_W + Math.random() * 40;
+                }
+            }
+
             if (!g.running || g.gameOver || g.cleared) return;
 
             if (g.winningRun) {
@@ -405,9 +450,12 @@ function GameCanvas({
 
             g.spawnTimer -= dt;
             if (g.spawnTimer <= 0 && score < GOAL_SCORE - 20) {
-                const h = 18 + Math.random() * 28;
-                const w = 14 + Math.random() * 18;
-                g.obstacles.push({ x: WORLD_W + 40, w, h });
+                const kind: ObstacleKind =
+                    Math.random() < 0.5 ? "tree" : "billboard";
+                const h = kind === "tree" ? 48 : 32;
+                const w =
+                    h * (kind === "tree" ? TREE_ASPECT : BILLBOARD_ASPECT);
+                g.obstacles.push({ x: WORLD_W + 40, w, h, kind });
 
                 const base = 0.9 - Math.min(0.35, g.tAlive * 0.01);
                 g.spawnTimer = Math.max(0.45, base + Math.random() * 0.35);
@@ -449,11 +497,91 @@ function GameCanvas({
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
 
-            // Ground line
-            ctx.fillStyle = "#111";
-            ctx.fillRect(0, GROUND_Y, WORLD_W, 3);
+            const worldH = canvas.height / g.scale;
+            const frameY = Math.max(30, (worldH - CAM_H) / 2);
+            const camOffset = frameY - CAM_TOP;
+            const msgY = CAM_TOP + CAM_H * 0.35;
 
-            // Player — sprite or fallback rect
+            // -- Background --
+            ctx.fillStyle = "#f5f0eb";
+            ctx.fillRect(0, 0, WORLD_W, worldH);
+
+            // -- Progress bar (above frame) --
+            const score = Math.min(GOAL_SCORE, Math.floor(g.tAlive * 10));
+            const progress = score / GOAL_SCORE;
+
+            const barL = 28;
+            const barR = g.viewRight - 49;
+            const barW = barR - barL;
+            const barY = frameY - 18;
+            const barH = 3;
+
+            ctx.fillStyle = "#d8d2cb";
+            ctx.fillRect(barL, barY, barW, barH);
+            ctx.fillStyle = "#e8b4b8";
+            ctx.fillRect(barL, barY, barW * progress, barH);
+
+            for (const st of STATIONS) {
+                const sx = barL + barW * (st.score / GOAL_SCORE);
+                ctx.fillStyle = "#999";
+                ctx.fillRect(sx - 0.5, barY - 2, 1, barH + 4);
+            }
+
+            ctx.fillStyle = "#555";
+            ctx.font = "8px system-ui";
+            ctx.fillText("浜松", 4, barY + 3);
+            ctx.textAlign = "end";
+            ctx.fillText("東京", g.viewRight - 28, barY + 3);
+            ctx.textAlign = "start";
+
+            let currentStation = STATIONS[0].name;
+            for (const st of STATIONS) {
+                if (score >= st.score) currentStation = st.name;
+            }
+            ctx.font = "11px system-ui";
+            ctx.fillText(`${currentStation} `, 4, barY - 8);
+
+            // -- Game frame (clipped viewport) --
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, frameY, WORLD_W, CAM_H);
+            ctx.clip();
+            ctx.translate(0, camOffset);
+
+            // Sky
+            ctx.fillStyle = "#c2e5f7";
+            ctx.fillRect(0, CAM_TOP, WORLD_W, HORIZON_Y - CAM_TOP);
+
+            // Road
+            ctx.fillStyle = "#d4cbbf";
+            ctx.fillRect(0, HORIZON_Y, WORLD_W, CAM_TOP + CAM_H - HORIZON_Y);
+
+            // Mount Fuji background
+            const fujiStart = 80;
+            const fujiEnd = 450;
+            if (
+                score >= fujiStart &&
+                score <= fujiEnd &&
+                g.fujiImg?.complete &&
+                g.fujiImg.naturalWidth > 0
+            ) {
+                const t = (score - fujiStart) / (fujiEnd - fujiStart);
+                const fujiX = WORLD_W - t * (WORLD_W + FUJI_W);
+                const fujiY = HORIZON_Y - FUJI_H + 5;
+                ctx.drawImage(g.fujiImg, fujiX, fujiY, FUJI_W, FUJI_H);
+            }
+
+            // Clouds
+            if (g.cloudImg?.complete && g.cloudImg.naturalWidth > 0) {
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                for (const c of g.clouds) {
+                    ctx.drawImage(g.cloudImg, c.x, c.y, CLOUD_W, CLOUD_H);
+                }
+                ctx.restore();
+            }
+
+            // Player
             const frameIdx = g.player.onGround ? g.animFrame : 1;
             const sprite = g.spriteFrames[frameIdx];
 
@@ -465,7 +593,7 @@ function GameCanvas({
                 ctx.fillRect(g.player.x, g.player.y, PLAYER_W, PLAYER_H);
             }
 
-            // Greeter (the other character welcoming the player at the goal)
+            // Greeter
             if (g.winningRun || g.cleared) {
                 const greeterSprite = g.greeterFrames[0];
                 if (greeterSprite?.complete && greeterSprite.naturalWidth > 0) {
@@ -486,51 +614,22 @@ function GameCanvas({
             }
 
             // Obstacles
-            ctx.fillStyle = "#111";
             for (const ob of g.obstacles) {
-                ctx.fillRect(ob.x, GROUND_Y - ob.h, ob.w, ob.h);
+                const obImg = ob.kind === "tree" ? g.treeImg : g.billboardImg;
+                if (obImg?.complete && obImg.naturalWidth > 0) {
+                    ctx.drawImage(obImg, ob.x, GROUND_Y - ob.h, ob.w, ob.h);
+                } else {
+                    ctx.fillStyle = "#111";
+                    ctx.fillRect(ob.x, GROUND_Y - ob.h, ob.w, ob.h);
+                }
             }
 
-            // Progress bar
-            const score = Math.min(GOAL_SCORE, Math.floor(g.tAlive * 10));
-            const progress = score / GOAL_SCORE;
-
-            const barL = 28;
-            const barR = g.viewRight - 49;
-            const barW = barR - barL;
-            const barY = 9;
-            const barH = 3;
-
-            ctx.fillStyle = "#d8d2cb";
-            ctx.fillRect(barL, barY, barW, barH);
-            ctx.fillStyle = "#e8b4b8";
-            ctx.fillRect(barL, barY, barW * progress, barH);
-
-            for (const st of STATIONS) {
-                const sx = barL + barW * (st.score / GOAL_SCORE);
-                ctx.fillStyle = "#999";
-                ctx.fillRect(sx - 0.5, barY - 2, 1, barH + 4);
-            }
-
+            // Center messages (in world coords)
             ctx.fillStyle = "#111";
-            ctx.font = "8px system-ui";
-            ctx.fillText("浜松", 4, 13);
-            ctx.textAlign = "end";
-            ctx.fillText("東京", g.viewRight - 28, 13);
-            ctx.textAlign = "start";
-
-            let currentStation = STATIONS[0].name;
-            for (const st of STATIONS) {
-                if (score >= st.score) currentStation = st.name;
-            }
-            ctx.font = "11px system-ui";
-            ctx.fillText(`${currentStation} `, 4, 29);
-
-            // Center messages
             ctx.font = "14px system-ui";
             if (g.waitingToStart) {
                 ctx.textAlign = "center";
-                ctx.fillText("TAP TO START", g.viewCenterX, 150);
+                ctx.fillText("TAP TO START", g.viewCenterX, msgY);
                 ctx.textAlign = "start";
             } else if (g.winningRun) {
                 ctx.save();
@@ -538,27 +637,34 @@ function GameCanvas({
                 const alpha = 0.6 + 0.4 * Math.sin(g.winRunTimer * 10);
                 ctx.globalAlpha = alpha;
                 ctx.font = "16px system-ui";
-                ctx.fillText("GOAL! ", g.viewCenterX, 150);
+                ctx.fillText("GOAL! ", g.viewCenterX, msgY);
                 ctx.globalAlpha = 1;
                 ctx.restore();
             } else if (g.cleared) {
                 ctx.textAlign = "center";
-                ctx.fillText("東京駅到着！", g.viewCenterX, 140);
+                ctx.fillText("東京駅到着！", g.viewCenterX, msgY - 10);
                 ctx.font = "11px system-ui";
                 ctx.fillText(
                     `TIME ${g.tAlive.toFixed(1)}s`,
                     g.viewCenterX,
-                    160,
+                    msgY + 10,
                 );
                 ctx.textAlign = "start";
             } else if (g.gameOver) {
                 ctx.textAlign = "center";
-                ctx.fillText("GAME OVER", g.viewCenterX, 145);
+                ctx.fillText("GAME OVER", g.viewCenterX, msgY - 5);
                 ctx.font = "10px system-ui";
                 ctx.fillStyle = "#888";
-                ctx.fillText("TAP TO RESTART", g.viewCenterX, 165);
+                ctx.fillText("TAP TO RESTART", g.viewCenterX, msgY + 15);
                 ctx.textAlign = "start";
             }
+
+            ctx.restore();
+
+            // Frame border
+            ctx.strokeStyle = "#bbb";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0.5, frameY + 0.5, WORLD_W - 1, CAM_H - 1);
         };
 
         const loop = (ts: number) => {
