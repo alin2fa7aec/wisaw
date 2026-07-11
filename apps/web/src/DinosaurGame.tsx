@@ -40,6 +40,7 @@ const STATIONS = [
     { name: "浜松", score: 0 },
     { name: "掛川", score: 79 },
     { name: "静岡", score: 201 },
+    { name: "熱海", score: 330 },
     { name: "小田原", score: 452 },
     { name: "新横浜", score: 610 },
     { name: "東京", score: GOAL_SCORE },
