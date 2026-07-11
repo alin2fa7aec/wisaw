@@ -20,8 +20,8 @@ const PLAYER_H = 32;
 
 const SPRITE_H = 42;
 
-const GRAVITY = 2700;
-const JUMP_V = 700;
+const GRAVITY = 2400;
+const JUMP_V = 640;
 
 const INPUT_COOLDOWN_MS = 250;
 const RUN_FRAME_INTERVAL = 1 / 8;
@@ -452,10 +452,13 @@ function GameCanvas({
             if (g.spawnTimer <= 0 && score < GOAL_SCORE - 20) {
                 const kind: ObstacleKind =
                     Math.random() < 0.5 ? "tree" : "billboard";
-                const h = kind === "tree" ? 48 : 32;
+                const h = kind === "tree" ? 57 : 32;
                 const w =
                     h * (kind === "tree" ? TREE_ASPECT : BILLBOARD_ASPECT);
                 g.obstacles.push({ x: WORLD_W + 40, w, h, kind });
+                if (kind === "billboard" && Math.random() < 0.5) {
+                    g.obstacles.push({ x: WORLD_W + 56 + w, w, h, kind });
+                }
 
                 const base = 0.9 - Math.min(0.35, g.tAlive * 0.01);
                 g.spawnTimer = Math.max(0.45, base + Math.random() * 0.35);
