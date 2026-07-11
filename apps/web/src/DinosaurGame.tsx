@@ -32,7 +32,7 @@ const WINNING_RUN_DURATION = 2.0;
 const CLOUD_H = 10;
 const CLOUD_W = Math.round(CLOUD_H * (657 / 214));
 const FUJI_H = 80;
-const FUJI_W = Math.round(FUJI_H * (3797 / 823));
+const FUJI_W = Math.round(FUJI_H * (1233 / 333));
 const BILLBOARD_ASPECT = 92 / 86;
 const TREE_ASPECT = 44 / 118;
 
