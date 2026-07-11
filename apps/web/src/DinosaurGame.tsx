@@ -739,13 +739,8 @@ function GameCanvas({
 
             {isLandscape && (
                 <div className="absolute inset-0 z-30 grid place-items-center bg-black/85 px-6 text-center text-white">
-                    <div className="space-y-2">
-                        <div className="text-base font-semibold">
-                            縦画面に戻せ
-                        </div>
-                        <div className="text-sm opacity-80">
-                            横向きでは遊ばせない。
-                        </div>
+                    <div className="text-base font-semibold">
+                        画面を縦にしてお楽しみください
                     </div>
                 </div>
             )}
