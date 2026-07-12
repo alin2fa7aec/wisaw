@@ -9,6 +9,7 @@ import {
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { createHash } from "crypto";
 import { sendEmail } from "./mail";
+import { RSVP_MAIL_SUBJECT, buildRsvpMailBody } from "./mail-content";
 
 // for Real DynamoDB
 // const ddb = new DynamoDBClient({});
@@ -150,8 +151,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             try {
                 await sendEmail({
                     to: data.email,
-                    subject: "【wisaw】ご回答ありがとうございます",
-                    bodyText: buildMailBody(data),
+                    subject: RSVP_MAIL_SUBJECT,
+                    bodyText: buildRsvpMailBody(data.answers),
                 });
                 emailStatus = "SENT";
             } catch (err) {
@@ -185,43 +186,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return json(500, { ok: false });
     }
 };
-
-const ANSWER_LABELS: Record<string, string> = {
-    Attendance: "ご出欠",
-    Host: "どちら側のゲスト",
-    FamilyNameKanji: "姓",
-    FirstNameKanji: "名",
-    FamilyNameKana: "セイ",
-    FirstNameKana: "メイ",
-    FamilyNameEn: "Family Name",
-    FirstNameEn: "First Name",
-    Tel: "電話番号",
-    PostCode: "郵便番号",
-    Prefecture: "都道府県",
-    Municipalities: "市区町村",
-    Block: "番地",
-    BuildingAndRoom: "建物名・部屋番号",
-    AllergyHas: "アレルギー",
-    AllergyItems: "特定原材料",
-    AllergyOther: "その他アレルギー",
-    Message: "メッセージ",
-};
-
-function buildMailBody(data: Submit): string {
-    const lines = [
-        "ご回答いただきありがとうございます。",
-        "以下の内容で受け付けました。",
-        "",
-        "─────────────────────",
-        ...Object.entries(data.answers)
-            .filter(([, a]) => a.length > 0)
-            .map(([q, a]) => `${ANSWER_LABELS[q] ?? q}: ${a}`),
-        "─────────────────────",
-        "",
-        "※ このメールは自動送信です。",
-    ];
-    return lines.join("\n");
-}
 
 function json(statusCode: number, body: unknown) {
     return {
