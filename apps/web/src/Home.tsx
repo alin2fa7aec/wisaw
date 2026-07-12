@@ -3,6 +3,7 @@ import { Github, Instagram } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
 import { type ReactNode, useEffect, useState } from "react";
 import { FadeIn } from "@/components/FadeIn";
+import { FadeSequence } from "@/components/FadeSequence";
 
 /* ── 画像 ── */
 const IMG_BASE = "/images";
@@ -85,7 +86,10 @@ export const Home = ({
 }) => {
     const weddingMessage = useWeddingMessage();
 
+    // Home 内の FadeIn を上から順の依存チェーンとして連動させる。
+    // 各要素は直前の要素が現れるまで待つので、画像の読み込み順に関わらず表示順が保たれる。
     return (
+        <FadeSequence>
         <div className="bg-background overflow-hidden">
             {/* ═══ 1. HERO ═══ */}
             <header className="pt-12 pb-12">
@@ -167,22 +171,22 @@ export const Home = ({
                         <SectionTitle>MESSAGE</SectionTitle>
                     </FadeIn>
                     <div className="flex flex-col gap-3 leading-loose text-foreground">
-                        <FadeIn delay={200}>
+                        <FadeIn>
                             <p className="text-xs">謹啓</p>
                         </FadeIn>
-                        <FadeIn delay={450}>
+                        <FadeIn>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまにおかれましては</p>
                                 <p>ご清祥のこととお慶び申し上げます</p>
                             </div>
                         </FadeIn>
-                        <FadeIn delay={700}>
+                        <FadeIn>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>このたび 私たちは結婚式を</p>
                                 <p>挙げることとなりました</p>
                             </div>
                         </FadeIn>
-                        <FadeIn delay={950}>
+                        <FadeIn>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>つきましては日頃お世話になっている</p>
                                 <p>皆さまにお集まりいただき</p>
@@ -190,14 +194,14 @@ export const Home = ({
                                 <p>催したいと存じます</p>
                             </div>
                         </FadeIn>
-                        <FadeIn delay={1200}>
+                        <FadeIn>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>皆さまに見守られながら</p>
                                 <p>ふたりの新しい門出を迎えられることを</p>
                                 <p>心より楽しみにしております</p>
                             </div>
                         </FadeIn>
-                        <FadeIn delay={1450}>
+                        <FadeIn>
                             <div className="flex flex-col gap-0 text-xs">
                                 <p>謹白</p>
                             </div>
@@ -234,7 +238,7 @@ export const Home = ({
                 {/* プロフィールカード */}
                 <div className="grid grid-cols-2 gap-4 px-5">
                     {/* BRIDE */}
-                    <FadeIn variant="scale" delay={500} className="h-full">
+                    <FadeIn variant="scale" className="h-full">
                         <article className="relative bg-card border border-border p-6 pl-8 h-full">
                             <header className="mb-4 pb-3 border-b border-border">
                                 <p className="text-base mb-1">柴田 咲葵</p>
@@ -267,7 +271,7 @@ export const Home = ({
                     </FadeIn>
 
                     {/* GROOM */}
-                    <FadeIn variant="scale" delay={900} className="h-full">
+                    <FadeIn variant="scale" className="h-full">
                         <article className="relative bg-card border border-border p-6 pr-8 h-full">
                             <header className="mb-4 pb-3 border-b border-border text-right">
                                 <p className="text-base mb-1">林 晶</p>
@@ -345,10 +349,7 @@ export const Home = ({
                             text: "新郎新婦より感謝の気持ちを込めてお見送りいたします",
                         },
                     ].map((item, i, arr) => (
-                        <FadeIn
-                            key={item.time + item.title}
-                            delay={300 + i * 250}
-                        >
+                        <FadeIn key={item.time + item.title}>
                             <li className="grid grid-cols-[auto_14px_1fr] gap-x-3 relative pb-2">
                                 {/* 時刻 */}
                                 <div className="flex items-center h-[1.2em]">
@@ -407,14 +408,14 @@ export const Home = ({
                         </div>
                     </FadeIn>
                     <div className="px-7 flex flex-col gap-4 leading-[1.9] text-text-soft text-[0.6rem]">
-                        <FadeIn delay={250}>
+                        <FadeIn>
                             <p>
                                 ゲスト更衣室をご用意しております
                                 <br />
                                 10時から11時のあいだと13時30分以降の時間帯にご利用いただけます
                             </p>
                         </FadeIn>
-                        <FadeIn delay={550}>
+                        <FadeIn>
                             <p>
                                 会場内には喫煙室もございますが
                                 <br />
@@ -423,7 +424,7 @@ export const Home = ({
                                 ゲストの皆さまにはご不便おかけしますがご協力お願い申し上げます
                             </p>
                         </FadeIn>
-                        <FadeIn delay={850}>
+                        <FadeIn>
                             <p>
                                 お車でお越しの際は近隣のパーキングをご利用ください
                                 <br />
@@ -446,7 +447,7 @@ export const Home = ({
                 </FadeIn>
 
                 {/* 情報 */}
-                <FadeIn delay={350}>
+                <FadeIn>
                     <div className="flex flex-col gap-3 items-center">
                         <h3 className="text-base mb-1">ブラスブルー東京</h3>
                         <div className="flex flex-col gap-2 text-center text-text-soft">
@@ -476,7 +477,7 @@ export const Home = ({
 
                 {/* 地図 */}
 
-                <FadeIn variant="scale" delay={350}>
+                <FadeIn variant="scale">
                     <div className="grid grid-cols-2 gap-4 px-5 py-7">
                         <iframe
                             title="ブラスブルー東京"
@@ -509,7 +510,7 @@ export const Home = ({
                         出欠のご返信はこちら
                     </Button>
                 </FadeIn>
-                <FadeIn delay={400}>
+                <FadeIn>
                     <p className="text-xs text-text-soft">
                         8月23日(日) 迄にご回答いただければ幸に存じます
                     </p>
@@ -546,5 +547,6 @@ export const Home = ({
                 </div>
             </footer>
         </div>
+        </FadeSequence>
     );
 };
