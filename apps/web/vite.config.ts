@@ -39,6 +39,15 @@ function serveLocalImages(): Plugin {
 
                 if (relPath === "gallery/manifest.json") {
                     const galleryDir = path.join(root, "gallery");
+                    // 生成済みの manifest があればそのまま返す。
+                    // 表示順(ランダム)と回転後の寸法が本番と一致する。
+                    const manifestFile = path.join(galleryDir, "manifest.json");
+                    if (fs.existsSync(manifestFile)) {
+                        res.setHeader("Content-Type", "application/json");
+                        fs.createReadStream(manifestFile).pipe(res);
+                        return;
+                    }
+                    // 未生成のときのみディレクトリから動的に組み立てる(フォールバック)。
                     const entries = fs.existsSync(galleryDir)
                         ? fs.readdirSync(galleryDir)
                               .filter((f) => /\.(jpe?g|png|webp|gif|avif)$/i.test(f))

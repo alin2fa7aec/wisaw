@@ -39,8 +39,12 @@ const entries = await Promise.all(
     }),
 );
 
-// ファイル名順で安定させてから書き出す
-entries.sort((a, b) => a.file.localeCompare(b.file));
+// ファイル名順だと元の命名に引きずられるため、表示順はランダムにする。
+// Fisher-Yates でシャッフルしてから manifest に焼き込む。
+for (let i = entries.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [entries[i], entries[j]] = [entries[j], entries[i]];
+}
 fs.writeFileSync(MANIFEST_FILE, JSON.stringify(entries));
 
 console.log(`Done. ${files.length} thumbnails saved to ${THUMBS_DIR}`);
