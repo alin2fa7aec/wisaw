@@ -52,17 +52,18 @@ const App = () => {
     return (
         <TapPetals>
         <div className="bg-background">
-            {createPortal(
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="fixed top-4 right-4 z-[60]"
-                    onClick={() => setDrawerOpen(true)}
-                >
-                    <MenuIcon className="size-6" />
-                </Button>,
-                document.body,
-            )}
+            {!drawerOpen &&
+                createPortal(
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="fixed top-4 right-4 z-[60]"
+                        onClick={() => setDrawerOpen(true)}
+                    >
+                        <MenuIcon className="size-6" />
+                    </Button>,
+                    document.body,
+                )}
 
             <Drawer
                 direction="right"

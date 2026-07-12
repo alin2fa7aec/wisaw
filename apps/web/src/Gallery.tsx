@@ -163,7 +163,7 @@ const Lightbox = ({
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
+                className="absolute top-4 left-4 z-10 text-white hover:bg-white/20"
                 onClick={onClose}
             >
                 <X className="size-6" />
