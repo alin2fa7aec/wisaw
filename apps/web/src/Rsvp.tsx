@@ -154,9 +154,11 @@ export const Rsvp = () => {
     const hasAlphaError =
         isAlphaInvalid(familyNameEn) || isAlphaInvalid(firstNameEn);
 
+    // 欠席の場合は名前とメールアドレス以外の項目を不要とする
+    const isAbsent = attendance === "ご欠席";
+
     const canSubmit =
         attendance !== "" &&
-        host !== "" &&
         familyNameKanji.trim().length > 0 &&
         firstNameKanji.trim().length > 0 &&
         familyNameKana.trim().length > 0 &&
@@ -167,12 +169,14 @@ export const Rsvp = () => {
         !hasAlphaError &&
         email.trim().length > 0 &&
         !isEmailInvalid &&
-        tel.trim().length > 0 &&
-        postCode.trim().length > 0 &&
-        prefecture.trim().length > 0 &&
-        municipalities.trim().length > 0 &&
-        block.trim().length > 0 &&
-        allergyHas !== "" &&
+        (isAbsent ||
+            (host !== "" &&
+                tel.trim().length > 0 &&
+                postCode.trim().length > 0 &&
+                prefecture.trim().length > 0 &&
+                municipalities.trim().length > 0 &&
+                block.trim().length > 0 &&
+                allergyHas !== "")) &&
         submitState.status !== "submitting";
 
     const handleAllergyToggle = (item: string, checked: boolean) => {
@@ -315,25 +319,27 @@ export const Rsvp = () => {
                                 </RadioGroup>
                             </fieldset>
 
-                            <fieldset className="flex flex-col gap-3">
-                                <FieldLabel required>
-                                    どちら側のゲストですか？
-                                </FieldLabel>
-                                <RadioGroup
-                                    value={host}
-                                    onValueChange={setHost}
-                                    className="flex justify-center gap-8"
-                                >
-                                    {["新婦", "新郎"].map((v) => (
-                                        <RadioButton
-                                            key={v}
-                                            value={v}
-                                            id={`host-${v}`}
-                                            selected={host === v}
-                                        />
-                                    ))}
-                                </RadioGroup>
-                            </fieldset>
+                            {!isAbsent && (
+                                <fieldset className="flex flex-col gap-3">
+                                    <FieldLabel required>
+                                        どちら側のゲストですか？
+                                    </FieldLabel>
+                                    <RadioGroup
+                                        value={host}
+                                        onValueChange={setHost}
+                                        className="flex justify-center gap-8"
+                                    >
+                                        {["新婦", "新郎"].map((v) => (
+                                            <RadioButton
+                                                key={v}
+                                                value={v}
+                                                id={`host-${v}`}
+                                                selected={host === v}
+                                            />
+                                        ))}
+                                    </RadioGroup>
+                                </fieldset>
+                            )}
                         </div>
                     </section>
                 </FadeIn>
@@ -462,193 +468,219 @@ export const Rsvp = () => {
                                 )}
                             </fieldset>
 
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel required>電話番号</FieldLabel>
-                                <Input
-                                    type="tel"
-                                    placeholder="09005070220"
-                                    value={tel}
-                                    onChange={(e) => setTel(e.target.value)}
-                                />
-                            </fieldset>
-                        </div>
-                    </section>
-                </FadeIn>
-
-                {/* ═══ 4. ご住所 ═══ */}
-                <FadeIn>
-                    <section>
-                        <SectionHeader number="04" title="ご住所" />
-
-                        <div className="flex flex-col gap-3">
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel required>郵便番号</FieldLabel>
-                                <div className="flex gap-2">
+                            {!isAbsent && (
+                                <fieldset className="flex flex-col gap-2">
+                                    <FieldLabel required>電話番号</FieldLabel>
                                     <Input
-                                        className="flex-1"
-                                        inputMode="numeric"
-                                        placeholder="1710031"
-                                        value={postCode}
-                                        onChange={(e) =>
-                                            setPostCode(e.target.value)
-                                        }
+                                        type="tel"
+                                        placeholder="09005070220"
+                                        value={tel}
+                                        onChange={(e) => setTel(e.target.value)}
                                     />
-                                    <button
-                                        type="button"
-                                        className="px-3 py-1.5 text-[0.7rem] text-text-soft border border-border hover:bg-accent transition-colors"
-                                        onClick={lookupAddress}
-                                    >
-                                        住所検索
-                                    </button>
-                                </div>
-                                {addressLookupError && (
-                                    <p className="text-[0.7rem] text-destructive">
-                                        {addressLookupError}
-                                    </p>
-                                )}
-                            </fieldset>
-
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel required>都道府県</FieldLabel>
-                                <Input
-                                    placeholder="東京都"
-                                    value={prefecture}
-                                    onChange={(e) =>
-                                        setPrefecture(e.target.value)
-                                    }
-                                />
-                            </fieldset>
-
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel required>市区町村</FieldLabel>
-                                <Input
-                                    placeholder="豊島区目白"
-                                    value={municipalities}
-                                    onChange={(e) =>
-                                        setMunicipalities(e.target.value)
-                                    }
-                                />
-                            </fieldset>
-
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel required>番地</FieldLabel>
-                                <Input
-                                    placeholder="2-39-1"
-                                    value={block}
-                                    onChange={(e) => setBlock(e.target.value)}
-                                />
-                            </fieldset>
-
-                            <fieldset className="flex flex-col gap-2">
-                                <FieldLabel>建物名・部屋番号</FieldLabel>
-                                <Input
-                                    placeholder="トラッド目白 301"
-                                    value={buildingAndRoom}
-                                    onChange={(e) =>
-                                        setBuildingAndRoom(e.target.value)
-                                    }
-                                />
-                            </fieldset>
-                        </div>
-                    </section>
-                </FadeIn>
-
-                {/* ═══ 5. アレルギー ═══ */}
-                <FadeIn>
-                    <section>
-                        <SectionHeader number="05" title="アレルギー" />
-
-                        <div className="flex flex-col gap-4">
-                            <fieldset className="flex flex-col gap-3">
-                                <FieldLabel required>
-                                    食物アレルギーはございますか？
-                                </FieldLabel>
-                                <RadioGroup
-                                    value={allergyHas}
-                                    onValueChange={setAllergyHas}
-                                    className="flex justify-center gap-8"
-                                >
-                                    {["あり", "なし"].map((v) => (
-                                        <RadioButton
-                                            key={v}
-                                            value={v}
-                                            id={`allergy-${v}`}
-                                            selected={allergyHas === v}
-                                        />
-                                    ))}
-                                </RadioGroup>
-                            </fieldset>
-
-                            {allergyHas === "あり" && (
-                                <div className="relative pl-4 flex flex-col gap-4">
-                                    <span className="absolute top-0 left-0 w-0.5 h-full bg-primary" />
-
-                                    <div>
-                                        <p className="text-[0.7rem] text-text-soft mb-3">
-                                            特定原材料 (該当するものを選択)
-                                        </p>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {SPECIFIC_RAW_MATERIALS.map(
-                                                (item) => (
-                                                    <label
-                                                        key={item}
-                                                        htmlFor={`allergy-item-${item}`}
-                                                        className="flex items-center gap-1.5 text-xs cursor-pointer"
-                                                    >
-                                                        <Checkbox
-                                                            id={`allergy-item-${item}`}
-                                                            checked={allergyItems.includes(
-                                                                item,
-                                                            )}
-                                                            onCheckedChange={(
-                                                                checked,
-                                                            ) =>
-                                                                handleAllergyToggle(
-                                                                    item,
-                                                                    checked ===
-                                                                        true,
-                                                                )
-                                                            }
-                                                        />
-                                                        {item}
-                                                    </label>
-                                                ),
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <fieldset className="flex flex-col gap-2">
-                                        <FieldLabel>その他</FieldLabel>
-                                        <Input
-                                            placeholder="その他のアレルギー"
-                                            value={allergyOther}
-                                            onChange={(e) =>
-                                                setAllergyOther(e.target.value)
-                                            }
-                                        />
-                                    </fieldset>
-                                </div>
+                                </fieldset>
                             )}
                         </div>
                     </section>
                 </FadeIn>
 
-                {/* ═══ 6. メッセージ ═══ */}
-                <FadeIn>
-                    <section>
-                        <SectionHeader number="06" title="メッセージ" />
+                {!isAbsent && (
+                    <>
+                        {/* ═══ 4. ご住所 ═══ */}
+                        <FadeIn>
+                            <section>
+                                <SectionHeader number="04" title="ご住所" />
 
-                        <fieldset className="flex flex-col gap-2">
-                            <FieldLabel>ふたりへのメッセージ</FieldLabel>
-                            <Textarea
-                                className="min-h-25"
-                                placeholder="任意です"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                            />
-                        </fieldset>
-                    </section>
-                </FadeIn>
+                                <div className="flex flex-col gap-3">
+                                    <fieldset className="flex flex-col gap-2">
+                                        <FieldLabel required>
+                                            郵便番号
+                                        </FieldLabel>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                className="flex-1"
+                                                inputMode="numeric"
+                                                placeholder="1710031"
+                                                value={postCode}
+                                                onChange={(e) =>
+                                                    setPostCode(e.target.value)
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                className="px-3 py-1.5 text-[0.7rem] text-text-soft border border-border hover:bg-accent transition-colors"
+                                                onClick={lookupAddress}
+                                            >
+                                                住所検索
+                                            </button>
+                                        </div>
+                                        {addressLookupError && (
+                                            <p className="text-[0.7rem] text-destructive">
+                                                {addressLookupError}
+                                            </p>
+                                        )}
+                                    </fieldset>
+
+                                    <fieldset className="flex flex-col gap-2">
+                                        <FieldLabel required>
+                                            都道府県
+                                        </FieldLabel>
+                                        <Input
+                                            placeholder="東京都"
+                                            value={prefecture}
+                                            onChange={(e) =>
+                                                setPrefecture(e.target.value)
+                                            }
+                                        />
+                                    </fieldset>
+
+                                    <fieldset className="flex flex-col gap-2">
+                                        <FieldLabel required>
+                                            市区町村
+                                        </FieldLabel>
+                                        <Input
+                                            placeholder="豊島区目白"
+                                            value={municipalities}
+                                            onChange={(e) =>
+                                                setMunicipalities(e.target.value)
+                                            }
+                                        />
+                                    </fieldset>
+
+                                    <fieldset className="flex flex-col gap-2">
+                                        <FieldLabel required>番地</FieldLabel>
+                                        <Input
+                                            placeholder="2-39-1"
+                                            value={block}
+                                            onChange={(e) =>
+                                                setBlock(e.target.value)
+                                            }
+                                        />
+                                    </fieldset>
+
+                                    <fieldset className="flex flex-col gap-2">
+                                        <FieldLabel>建物名・部屋番号</FieldLabel>
+                                        <Input
+                                            placeholder="トラッド目白 301"
+                                            value={buildingAndRoom}
+                                            onChange={(e) =>
+                                                setBuildingAndRoom(
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </fieldset>
+                                </div>
+                            </section>
+                        </FadeIn>
+
+                        {/* ═══ 5. アレルギー ═══ */}
+                        <FadeIn>
+                            <section>
+                                <SectionHeader number="05" title="アレルギー" />
+
+                                <div className="flex flex-col gap-4">
+                                    <fieldset className="flex flex-col gap-3">
+                                        <FieldLabel required>
+                                            食物アレルギーはございますか？
+                                        </FieldLabel>
+                                        <RadioGroup
+                                            value={allergyHas}
+                                            onValueChange={setAllergyHas}
+                                            className="flex justify-center gap-8"
+                                        >
+                                            {["あり", "なし"].map((v) => (
+                                                <RadioButton
+                                                    key={v}
+                                                    value={v}
+                                                    id={`allergy-${v}`}
+                                                    selected={allergyHas === v}
+                                                />
+                                            ))}
+                                        </RadioGroup>
+                                    </fieldset>
+
+                                    {allergyHas === "あり" && (
+                                        <div className="relative pl-4 flex flex-col gap-4">
+                                            <span className="absolute top-0 left-0 w-0.5 h-full bg-primary" />
+
+                                            <div>
+                                                <p className="text-[0.7rem] text-text-soft mb-3">
+                                                    特定原材料
+                                                    (該当するものを選択)
+                                                </p>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {SPECIFIC_RAW_MATERIALS.map(
+                                                        (item) => (
+                                                            <label
+                                                                key={item}
+                                                                htmlFor={`allergy-item-${item}`}
+                                                                className="flex items-center gap-1.5 text-xs cursor-pointer"
+                                                            >
+                                                                <Checkbox
+                                                                    id={`allergy-item-${item}`}
+                                                                    checked={allergyItems.includes(
+                                                                        item,
+                                                                    )}
+                                                                    onCheckedChange={(
+                                                                        checked,
+                                                                    ) =>
+                                                                        handleAllergyToggle(
+                                                                            item,
+                                                                            checked ===
+                                                                                true,
+                                                                        )
+                                                                    }
+                                                                />
+                                                                {item}
+                                                            </label>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <fieldset className="flex flex-col gap-2">
+                                                <FieldLabel>その他</FieldLabel>
+                                                <Input
+                                                    placeholder="その他のアレルギー"
+                                                    value={allergyOther}
+                                                    onChange={(e) =>
+                                                        setAllergyOther(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </fieldset>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </FadeIn>
+
+                        {/* ═══ 6. メッセージ ═══ */}
+                        <FadeIn>
+                            <section>
+                                <SectionHeader
+                                    number="06"
+                                    title="メッセージ"
+                                />
+
+                                <fieldset className="flex flex-col gap-2">
+                                    <FieldLabel>
+                                        ふたりへのメッセージ
+                                    </FieldLabel>
+                                    <Textarea
+                                        className="min-h-25"
+                                        placeholder="任意です"
+                                        value={message}
+                                        onChange={(e) =>
+                                            setMessage(e.target.value)
+                                        }
+                                    />
+                                </fieldset>
+                            </section>
+                        </FadeIn>
+                    </>
+                )}
 
                 {/* ═══ 送信 ═══ */}
                 <FadeIn variant="bounce">

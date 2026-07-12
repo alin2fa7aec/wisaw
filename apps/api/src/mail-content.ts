@@ -51,7 +51,9 @@ export function buildRsvpMailBody(answers: Record<string, string>): string {
                 "このたびはお返事をいただき、ありがとうございます。",
                 "ご一緒できないのは残念ですが、お気持ちだけでも大変うれしく思います。",
             ];
-            closing = [];
+            closing = [
+                "もしご予定が変わりましたら、いつでもお気軽にお知らせくださいませ。",
+            ];
             break;
         case "保留":
             lead = [
@@ -67,20 +69,28 @@ export function buildRsvpMailBody(answers: Record<string, string>): string {
             closing = [];
     }
 
+    // 欠席の場合は回答内容の確認を省く
+    const showDetails = answers.Attendance !== "ご欠席";
     const details = Object.entries(answers)
         .filter(([, a]) => a.length > 0)
         .map(([q, a]) => `${ANSWER_LABELS[q] ?? q}: ${a}`);
+
+    const detailBlock = showDetails
+        ? [
+              "いただいた内容は以下のとおりです。",
+              "─────────────────────",
+              ...details,
+              "─────────────────────",
+              "",
+          ]
+        : [];
 
     const lines = [
         greeting,
         "",
         ...lead,
         "",
-        "いただいた内容は以下のとおりです。",
-        "─────────────────────",
-        ...details,
-        "─────────────────────",
-        "",
+        ...detailBlock,
         ...closing,
         ...(closing.length > 0 ? [""] : []),
         "柴田 咲葵 ・ 林 晶",
