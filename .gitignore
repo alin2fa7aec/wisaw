@@ -33,3 +33,6 @@ env.json
 
 # SAM build artifacts
 .aws-sam/
+
+# tools/build_sharp_layer.sh が生成する。ネイティブバイナリ込みで 18MB あるため追跡しない。
+layers/

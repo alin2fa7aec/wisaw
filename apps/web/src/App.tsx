@@ -16,6 +16,7 @@ import {
     Mail,
     Controller,
     Image,
+    Camera,
 } from "@mynaui/icons-react";
 import type { ComponentType, SVGAttributes } from "react";
 import { TapPetals } from "@/components/TapPetals";
@@ -27,9 +28,12 @@ const Rsvp = lazy(() => import("./Rsvp").then((m) => ({ default: m.Rsvp })));
 const Gallery = lazy(() =>
     import("./Gallery").then((m) => ({ default: m.Gallery })),
 );
+const MomentShare = lazy(() =>
+    import("./MomentShare").then((m) => ({ default: m.MomentShare })),
+);
 import { DinosaurGame } from "./DinosaurGame";
 
-type ContentKey = "home" | "rsvp" | "gallery" | "dinosaur-game";
+type ContentKey = "home" | "rsvp" | "gallery" | "moment" | "dinosaur-game";
 
 type MynaIcon = ComponentType<SVGAttributes<SVGElement>>;
 
@@ -37,6 +41,7 @@ const contentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
     { key: "home", label: "Home", icon: HomeIcon },
     { key: "rsvp", label: "RSVP", icon: Mail },
     { key: "gallery", label: "Gallery", icon: Image },
+    { key: "moment", label: "Moment Share", icon: Camera },
     { key: "dinosaur-game", label: "Dinosaur Game", icon: Controller },
 ];
 
@@ -127,6 +132,7 @@ const App = () => {
                                 )}
                                 {activeContent === "rsvp" && <Rsvp />}
                                 {activeContent === "gallery" && <Gallery />}
+                                {activeContent === "moment" && <MomentShare />}
                                 {activeContent === "dinosaur-game" && (
                                     <DinosaurGame
                                         onNavigateHome={() =>

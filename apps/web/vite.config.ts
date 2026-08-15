@@ -93,6 +93,17 @@ export default defineConfig({
                 target: "http://localhost:3000",
                 changeOrigin: true,
             },
+            "/moment/presign": {
+                target: "http://localhost:3000",
+                changeOrigin: true,
+            },
+            // 本番では CloudFront が moments/* を専用バケットへ振り分ける。
+            // ローカルでは MinIO をパススタイルで叩くため、バケット名を差し込む。
+            "/moments": {
+                target: "http://localhost:9000",
+                changeOrigin: true,
+                rewrite: (p) => `/wisaw-local-moments${p}`,
+            },
         },
     },
 });

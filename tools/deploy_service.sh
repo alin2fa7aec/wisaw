@@ -9,6 +9,11 @@ REGION="ap-northeast-1"
 echo "=== Build all packages ==="
 pnpm -r build
 
+# sharp はネイティブモジュールのため esbuild でバンドルできず、レイヤーから供給する。
+# layers/ は git 管理外なので、クローン直後でも確実に用意されるようここで毎回組む。
+echo "=== Build sharp layer ==="
+"$(dirname "$0")/build_sharp_layer.sh"
+
 echo "=== SAM build ==="
 sam build --profile "$PROFILE"
 

@@ -21,6 +21,14 @@ Parameters:
     HostedZoneId:
         Type: String
         Description: Route 53 hosted zone ID for the domain
+    MomentOpenAt:
+        Type: String
+        Default: "2026-10-18T00:00:00+09:00"
+        Description: MomentShare upload window open (ISO8601)
+    MomentCloseAt:
+        Type: String
+        Default: "2026-10-25T23:59:59+09:00"
+        Description: MomentShare upload window close (ISO8601)
 
 Globals:
     Function:
@@ -75,6 +83,195 @@ Resources:
             PrimaryKey:
                 Name: pk
                 Type: String
+
+    # ------------------------------------------------------------------
+    # MomentShare — ゲストによる写真共有
+    # ------------------------------------------------------------------
+
+    # 非公開バケット。アップロードの着地点(upload/)と、EXIF を保持したままの
+    # オリジナル(original/)を置く。GPS が残っているため CloudFront のオリジンには
+    # 決してしないこと。
+    MomentSrcBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Sub "${DomainName}-moments-src"
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedOrigins:
+                          - !Ref AllowOrigin
+                      AllowedMethods:
+                          - POST
+                      AllowedHeaders:
+                          - "*"
+            LifecycleConfiguration:
+                Rules:
+                    # 検証を通らず放置された着地点のゴミを片付ける
+                    - Id: AbortStaleUploads
+                      Status: Enabled
+                      Prefix: upload/
+                      ExpirationInDays: 1
+                    - Id: AbortIncompleteMultipart
+                      Status: Enabled
+                      AbortIncompleteMultipartUpload:
+                          DaysAfterInitiation: 1
+
+    # 公開バケット。閲覧用・サムネイル・manifest.json のみ。
+    # 既存の ImageBucket と分けているのは、deploy_images.sh の
+    # `aws s3 sync --delete` がゲストの写真を消してしまうため。
+    MomentPubBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Sub "${DomainName}-moments"
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            LifecycleConfiguration:
+                Rules:
+                    # 派生物はオリジナルから再生成できるので自動削除してよい。
+                    # オリジナル側には自動削除を設定しない(退避完了の確認を人が挟む)。
+                    - Id: ExpireViews
+                      Status: Enabled
+                      Prefix: moments/view/
+                      ExpirationInDays: 60
+                    - Id: ExpireThumbs
+                      Status: Enabled
+                      Prefix: moments/thumb/
+                      ExpirationInDays: 60
+
+    MomentPubBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref MomentPubBucket
+            PolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: s3:GetObject
+                      Resource: !Sub "${MomentPubBucket.Arn}/*"
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+    MomentTable:
+        Type: AWS::Serverless::SimpleTable
+        Properties:
+            TableName: wisaw-moments
+            PrimaryKey:
+                Name: pk
+                Type: String
+            SSESpecification:
+                SSEEnabled: true
+
+    # sharp はネイティブモジュールのため esbuild でバンドルできない。
+    # tools/build_sharp_layer.sh で生成したものを供給する。
+    # 実体は tools/build_sharp_layer.sh が nodejs/node_modules/ まで組んで用意する。
+    # 同スクリプトが置く Makefile 経由でコピーさせることで、ビルド成果物を見れば
+    # 何がデプロイされるか分かる状態にしている。
+    SharpLayer:
+        Type: AWS::Serverless::LayerVersion
+        Properties:
+            LayerName: wisaw-sharp
+            ContentUri: layers/sharp/
+            CompatibleRuntimes:
+                - nodejs20.x
+        Metadata:
+            BuildMethod: makefile
+
+    # Presigned POST の発行。受付期間・レート・容量の各上限をここで見る。
+    MomentPresignFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: apps/api/
+            Handler: dist/moment-presign.handler
+            Environment:
+                Variables:
+                    MOMENT_TABLE_NAME: !Ref MomentTable
+                    MOMENT_SRC_BUCKET: !Ref MomentSrcBucket
+                    MOMENT_OPEN_AT: !Ref MomentOpenAt
+                    MOMENT_CLOSE_AT: !Ref MomentCloseAt
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !Ref MomentTable
+                - Statement:
+                      - Effect: Allow
+                        Action: s3:PutObject
+                        Resource: !Sub "${MomentSrcBucket.Arn}/upload/*"
+            Events:
+                Presign:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Api
+                        Path: /moment/presign
+                        Method: POST
+
+    # アップロード完了を受けて検証・リサイズ・manifest 再構築を行う。
+    MomentProcessFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: apps/api/
+            Handler: dist/moment-process.handler
+            # sharp のデコードとリサイズはメモリを食う。24MP の写真で数秒かかる。
+            MemorySize: 2048
+            Timeout: 60
+            Layers:
+                - !Ref SharpLayer
+            Environment:
+                Variables:
+                    MOMENT_TABLE_NAME: !Ref MomentTable
+                    # このバケットは下の S3 イベントで自身の通知設定にこの関数を持つ。
+                    # !Ref で参照すると循環参照になるため、名前を直接組み立てる。
+                    MOMENT_SRC_BUCKET: !Sub "${DomainName}-moments-src"
+                    MOMENT_PUB_BUCKET: !Sub "${DomainName}-moments"
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !Ref MomentTable
+                - S3CrudPolicy:
+                      BucketName: !Sub "${DomainName}-moments-src"
+                - S3CrudPolicy:
+                      BucketName: !Sub "${DomainName}-moments"
+            Events:
+                Uploaded:
+                    Type: S3
+                    Properties:
+                        Bucket: !Ref MomentSrcBucket
+                        Events: s3:ObjectCreated:*
+                        Filter:
+                            S3Key:
+                                Rules:
+                                    - Name: prefix
+                                      Value: upload/
+
+    # manifest.json の再構築のみを行う。イベントソースを持たず CLI から呼ぶ。
+    # 写真を隠した後に一覧へ反映させるための口(tools/moment_admin.sh rebuild)。
+    MomentRebuildFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: wisaw-moment-rebuild
+            CodeUri: apps/api/
+            Handler: dist/moment-process.rebuildHandler
+            Timeout: 60
+            # 再構築自体は sharp を使わないが、同じモジュールに sharp の import が
+            # あるため読み込み時に解決できる必要がある。
+            Layers:
+                - !Ref SharpLayer
+            Environment:
+                Variables:
+                    MOMENT_TABLE_NAME: !Ref MomentTable
+                    MOMENT_SRC_BUCKET: !Ref MomentSrcBucket
+                    MOMENT_PUB_BUCKET: !Ref MomentPubBucket
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !Ref MomentTable
+                - S3CrudPolicy:
+                      BucketName: !Sub "${DomainName}-moments"
 
     SesBounceSnsTopic:
         Type: AWS::SNS::Topic
@@ -177,9 +374,23 @@ Resources:
                       OriginAccessControlId: !Ref CloudFrontOAC
                       S3OriginConfig:
                           OriginAccessIdentity: ""
+                    - Id: MomentS3Origin
+                      DomainName: !GetAtt MomentPubBucket.RegionalDomainName
+                      OriginAccessControlId: !Ref CloudFrontOAC
+                      S3OriginConfig:
+                          OriginAccessIdentity: ""
                 CacheBehaviors:
                     - PathPattern: "images/*"
                       TargetOriginId: ImageS3Origin
+                      ViewerProtocolPolicy: redirect-to-https
+                      CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                      Compress: true
+                    # MomentShare は閲覧用・サムネイル・manifest のみを配信する。
+                    # オリジナルは別バケット(MomentSrcBucket)にあり、ここには出てこない。
+                    # CachingOptimized はオリジンの Cache-Control を尊重するため、
+                    # Lambda が付けた max-age=300 / max-age=5 がそのまま効く。
+                    - PathPattern: "moments/*"
+                      TargetOriginId: MomentS3Origin
                       ViewerProtocolPolicy: redirect-to-https
                       CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
                       Compress: true
