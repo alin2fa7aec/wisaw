@@ -40,6 +40,10 @@ Globals:
                 TABLE_NAME: wisaw-submissions
                 USE_SES: "1"
                 SES_FROM_ADDRESS: !Ref SesFromAddress
+                # 本番では空。ローカルでのみ env.json から DynamoDB Local を指す。
+                # sam local の --env-vars はテンプレートに宣言済みの変数しか
+                # 上書きできないため、ここに宣言が無いと差し替えが効かない。
+                DYNAMODB_ENDPOINT: ""
 
 Resources:
     Api:
@@ -197,6 +201,8 @@ Resources:
                     MOMENT_SRC_BUCKET: !Ref MomentSrcBucket
                     MOMENT_OPEN_AT: !Ref MomentOpenAt
                     MOMENT_CLOSE_AT: !Ref MomentCloseAt
+                    # 本番では空。ローカルでのみ env.json から MinIO を指す。
+                    S3_ENDPOINT: ""
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !Ref MomentTable
@@ -230,6 +236,8 @@ Resources:
                     # !Ref で参照すると循環参照になるため、名前を直接組み立てる。
                     MOMENT_SRC_BUCKET: !Sub "${DomainName}-moments-src"
                     MOMENT_PUB_BUCKET: !Sub "${DomainName}-moments"
+                    # 本番では空。ローカルでのみ env.json から MinIO を指す。
+                    S3_ENDPOINT: ""
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !Ref MomentTable

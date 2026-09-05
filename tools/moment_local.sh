@@ -4,6 +4,7 @@ set -euo pipefail
 # MomentShare をローカルだけで動かすための道具。
 #
 #   ./tools/moment_local.sh setup    バケットとテーブルを作る(何度実行してもよい)
+#   ./tools/moment_local.sh api      sam local start-api を正しい環境で起動する
 #   ./tools/moment_local.sh watch    upload/ を監視し、着いたものを処理する
 #   ./tools/moment_local.sh status   いま何が入っているか
 #   ./tools/moment_local.sh reset    MomentShare 関連のデータを消す
@@ -16,12 +17,13 @@ set -euo pipefail
 #   pnpm --filter api build
 #
 # 併せて別ターミナルで以下が要る:
-#   sam local start-api --env-vars env.json --docker-network wisaw_default
+#   ./tools/moment_local.sh api
 #   pnpm dev:web
 
 export AWS_ACCESS_KEY_ID=minioadmin
 export AWS_SECRET_ACCESS_KEY=minioadmin
 export AWS_DEFAULT_REGION=ap-northeast-1
+export AWS_REGION=ap-northeast-1
 
 S3="http://localhost:9000"
 DDB="http://localhost:8000"
@@ -65,9 +67,23 @@ setup)
 
     echo
     echo "準備完了。次に別ターミナルで:"
-    echo "  sam local start-api --env-vars env.json --docker-network wisaw_default"
+    echo "  ./tools/moment_local.sh api"
     echo "  pnpm dev:web"
     echo "  ./tools/moment_local.sh watch"
+    ;;
+
+api)
+    # sam local はホスト側の資格情報を解決してコンテナへ注入する。
+    # SSO が切れていると解決に失敗し、リクエストごとに 502 になる。
+    # ローカル完結の確認に実 AWS は不要なので、ダミーを与えて起動する。
+    #
+    # テンプレートを変更した場合は sam build を先に済ませておくこと
+    # (sam local はソースではなく .aws-sam/build を見る)。
+    if [ ! -d .aws-sam/build ]; then
+        echo "警告: .aws-sam/build がありません。先に 'sam build' を実行してください。" >&2
+    fi
+    # 追加の引数(-p 3001 など)はそのまま渡す
+    exec sam local start-api --env-vars env.json --docker-network wisaw_default "${@:2}"
     ;;
 
 watch)
@@ -118,7 +134,7 @@ reset)
     ;;
 
 *)
-    sed -n '4,22p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '4,23p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
     ;;
 esac
