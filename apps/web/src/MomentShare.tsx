@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Camera, Upload } from "@mynaui/icons-react";
+import { Camera, Upload, Trash } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/FadeIn";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,6 +14,7 @@ import {
 const MANIFEST_URL = "/moments/manifest.json";
 const POLL_INTERVAL_MS = 5000;
 const DEVICE_ID_KEY = "wisaw.moment.deviceId";
+const MY_PHOTOS_KEY = "wisaw.moment.myPhotos";
 
 /** 端末識別子。防御ではなく「自分が上げた写真」を見分けるためのもの。 */
 function getDeviceId(): string {
@@ -22,6 +23,27 @@ function getDeviceId(): string {
     const id = crypto.randomUUID();
     localStorage.setItem(DEVICE_ID_KEY, id);
     return id;
+}
+
+/**
+ * この端末から上げた写真の id。削除ボタンを出す対象を決めるために持つ。
+ *
+ * manifest.json は id と寸法しか持たず、誰が上げたかを載せていない。
+ * 載せてしまうと他人の写真を消す材料を配ることになるため、
+ * 「自分のもの」の判断はサーバに問い合わせず手元の記録だけで行う。
+ */
+function readMyPhotoIds(): string[] {
+    try {
+        const raw = JSON.parse(localStorage.getItem(MY_PHOTOS_KEY) ?? "[]");
+        return Array.isArray(raw) ? raw.filter((v) => typeof v === "string") : [];
+    } catch {
+        // 壊れていたら諦めて空から作り直す。消せなくなるだけで実害は無い。
+        return [];
+    }
+}
+
+function writeMyPhotoIds(ids: string[]): void {
+    localStorage.setItem(MY_PHOTOS_KEY, JSON.stringify(ids));
 }
 
 type UploadState = {
@@ -36,6 +58,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     device_limit: `1台からアップロードできるのは${MOMENT_MAX_PER_DEVICE}枚までです。`,
     storage_full: "保存容量の上限に達しました。申し訳ありません。",
     not_configured: "ただいま準備中です。",
+    not_found: "この写真は見つかりませんでした。すでに消えているかもしれません。",
 };
 
 export const MomentShare = () => {
@@ -43,6 +66,9 @@ export const MomentShare = () => {
     const [loading, setLoading] = useState(true);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const [upload, setUpload] = useState<UploadState | null>(null);
+    const [myIds, setMyIds] = useState<Set<string>>(() => new Set(readMyPhotoIds()));
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // manifest.json を polling する。読み取り API を持たないことで
@@ -94,7 +120,7 @@ export const MomentShare = () => {
             return ERROR_MESSAGES[body?.error] ?? "アップロードできませんでした";
         }
 
-        const { url, fields } = await res.json();
+        const { url, fields, key } = await res.json();
 
         // S3 へ直接 POST する。Lambda を経由しないので大きな写真でも詰まらない。
         const form = new FormData();
@@ -105,6 +131,11 @@ export const MomentShare = () => {
 
         const put = await fetch(url, { method: "POST", body: form });
         if (!put.ok) return `${file.name}: 送信に失敗しました`;
+
+        // key は upload/<id>。この id が manifest に載るのを待たずに控えておく。
+        const id = String(key).slice("upload/".length);
+        writeMyPhotoIds([...readMyPhotoIds(), id]);
+        setMyIds((prev) => new Set(prev).add(id));
         return null;
     }, []);
 
@@ -129,6 +160,48 @@ export const MomentShare = () => {
         },
         [uploadOne],
     );
+
+    /**
+     * 自分が上げた写真を消す。
+     *
+     * サーバ側はソフト削除なので実体は残っており、後から戻せる。
+     * 一覧からは即座に消したいので、polling を待たず手元の entries からも外す。
+     */
+    const handleDelete = useCallback(async (id: string) => {
+        if (!confirm("この写真を削除します。よろしいですか？")) return;
+
+        setDeleteError(null);
+        setDeletingId(id);
+        try {
+            const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+            const res = await fetch(`${apiBase}/moment/delete`, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ deviceId: getDeviceId(), id }),
+            });
+
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                setDeleteError(
+                    ERROR_MESSAGES[body?.error] ?? "削除できませんでした",
+                );
+                return;
+            }
+
+            setEntries((prev) => prev.filter((e) => e.id !== id));
+            setLightboxIndex(null);
+            writeMyPhotoIds(readMyPhotoIds().filter((v) => v !== id));
+            setMyIds((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        } catch {
+            setDeleteError("削除できませんでした");
+        } finally {
+            setDeletingId(null);
+        }
+    }, []);
 
     const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
@@ -185,6 +258,12 @@ export const MomentShare = () => {
                 </div>
             )}
 
+            {deleteError && (
+                <p className="mb-6 text-center text-sm text-destructive">
+                    {deleteError}
+                </p>
+            )}
+
             {loading ? (
                 <div className="flex justify-center py-16">
                     <Spinner />
@@ -203,14 +282,32 @@ export const MomentShare = () => {
                             waitForImage
                             className="mb-3 break-inside-avoid"
                         >
-                            <img
-                                src={`/${entry.thumb}`}
-                                alt=""
-                                loading="lazy"
-                                style={{ aspectRatio: `${entry.w}/${entry.h}` }}
-                                className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => setLightboxIndex(index)}
-                            />
+                            <div className="relative">
+                                <img
+                                    src={`/${entry.thumb}`}
+                                    alt=""
+                                    loading="lazy"
+                                    style={{ aspectRatio: `${entry.w}/${entry.h}` }}
+                                    className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setLightboxIndex(index)}
+                                />
+                                {myIds.has(entry.id) && (
+                                    <Button
+                                        variant="secondary"
+                                        size="icon-sm"
+                                        aria-label="この写真を削除する"
+                                        className="absolute top-2 right-2 rounded-full opacity-80"
+                                        disabled={deletingId !== null}
+                                        onClick={() => handleDelete(entry.id)}
+                                    >
+                                        {deletingId === entry.id ? (
+                                            <Spinner className="size-4" />
+                                        ) : (
+                                            <Trash className="size-4" />
+                                        )}
+                                    </Button>
+                                )}
+                            </div>
                         </FadeIn>
                     ))}
                 </div>

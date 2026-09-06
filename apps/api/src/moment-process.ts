@@ -1,36 +1,21 @@
 import type { S3Handler } from "aws-lambda";
 import {
-    S3Client,
     GetObjectCommand,
     PutObjectCommand,
     DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
-import {
-    DynamoDBClient,
-    PutItemCommand,
-    UpdateItemCommand,
-    ScanCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { PutItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall } from "@aws-sdk/util-dynamodb";
 import sharp from "sharp";
-import type { MomentEntry } from "@wisaw/shared";
+import {
+    ddb,
+    s3,
+    TABLE_NAME,
+    PUB_BUCKET,
+    rebuildManifest,
+} from "./moment-manifest";
 
-const region = process.env.AWS_REGION ?? "ap-northeast-1";
-const endpoint = process.env.DYNAMODB_ENDPOINT;
-
-const ddb = endpoint
-    ? new DynamoDBClient({ region, endpoint })
-    : new DynamoDBClient({ region });
-
-// ローカルでは MinIO を S3 の代わりに使う(DYNAMODB_ENDPOINT と同じ流儀)。
-const s3Endpoint = process.env.S3_ENDPOINT;
-const s3 = s3Endpoint
-    ? new S3Client({ region, endpoint: s3Endpoint, forcePathStyle: true })
-    : new S3Client({ region });
-
-const TABLE_NAME = process.env.MOMENT_TABLE_NAME!;
 const SRC_BUCKET = process.env.MOMENT_SRC_BUCKET!;
-const PUB_BUCKET = process.env.MOMENT_PUB_BUCKET!;
 
 const VIEW_MAX = 1920;
 const THUMB_MAX = 300;
@@ -71,72 +56,6 @@ async function toBuffer(body: unknown): Promise<Buffer> {
     }
     return Buffer.concat(chunks);
 }
-
-/**
- * DynamoDB を正本として manifest.json を組み直し、公開バケットへ書く。
- *
- * 読み取り API を用意せずフロントにこの静的ファイルを polling させることで、
- * API を write only に保ったまま、閲覧のたびに Lambda が起動するのを避ける。
- */
-async function rebuildManifest(): Promise<number> {
-    const entries: MomentEntry[] = [];
-    let lastKey: Record<string, unknown> | undefined;
-
-    do {
-        const res = await ddb.send(
-            new ScanCommand({
-                TableName: TABLE_NAME,
-                // hidden は DynamoDB の予約語なので名前を差し替える必要がある
-                FilterExpression:
-                    "begins_with(pk, :p) AND attribute_not_exists(#hidden)",
-                ExpressionAttributeNames: { "#hidden": "hidden" },
-                ExpressionAttributeValues: marshall({ ":p": "photo#" }),
-                ExclusiveStartKey: lastKey as never,
-            }),
-        );
-        for (const raw of res.Items ?? []) {
-            const item = unmarshall(raw);
-            entries.push({
-                id: item.id,
-                view: item.view,
-                thumb: item.thumb,
-                w: Number(item.w),
-                h: Number(item.h),
-                uploadedAt: Number(item.uploadedAt),
-            });
-        }
-        lastKey = res.LastEvaluatedKey as never;
-    } while (lastKey);
-
-    // 新しいものが先頭。式当日に増えていく様子が見えるようにする。
-    entries.sort((a, b) => b.uploadedAt - a.uploadedAt);
-
-    await s3.send(
-        new PutObjectCommand({
-            Bucket: PUB_BUCKET,
-            Key: "moments/manifest.json",
-            Body: JSON.stringify({ updatedAt: Date.now(), entries }),
-            ContentType: "application/json",
-            // polling で拾えるよう短命にする。
-            CacheControl: "max-age=5",
-        }),
-    );
-
-    return entries.length;
-}
-
-/**
- * manifest.json を組み直すだけのハンドラ。
- *
- * 写真を隠したあとに一覧へ反映させるために CLI から呼ぶ。
- * 受付期間が終わると新規アップロードが無くなり manifest が更新されなくなるため、
- * 再構築の口が別に要る。ロジックを bash 側へ写経しないための入口。
- */
-export const rebuildHandler = async () => {
-    const total = await rebuildManifest();
-    console.log(`[rebuild] manifest=${total}`);
-    return { ok: true, entries: total };
-};
 
 export const handler: S3Handler = async (event) => {
     for (const record of event.Records) {

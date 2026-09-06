@@ -7,8 +7,8 @@
     "//": "@wisaw/shared は package.json に載せず、esbuild の --alias と tsconfig の paths で解決している。pnpm の workspace: プロトコルを sam build の npm install が解釈できず、devDependencies に置いてもビルドが壊れるため。sharp を devDependencies に置いているのは、実体を Lambda レイヤーから供給し esbuild では --external にしているから。",
     "scripts": {
         "clean": "rm -rf dist",
-        "build": "pnpm run clean && esbuild src/handler.ts src/bounce-handler.ts src/moment-presign.ts src/moment-process.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --sourcemap --external:sharp --alias:@wisaw/shared=../../packages/shared/src/index.ts",
-        "build:watch": "esbuild src/handler.ts src/bounce-handler.ts src/moment-presign.ts src/moment-process.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --sourcemap --external:sharp --alias:@wisaw/shared=../../packages/shared/src/index.ts --watch",
+        "build": "pnpm run clean && esbuild src/handler.ts src/bounce-handler.ts src/moment-presign.ts src/moment-process.ts src/moment-delete.ts src/moment-manifest.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --sourcemap --external:sharp --alias:@wisaw/shared=../../packages/shared/src/index.ts",
+        "build:watch": "esbuild src/handler.ts src/bounce-handler.ts src/moment-presign.ts src/moment-process.ts src/moment-delete.ts src/moment-manifest.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --sourcemap --external:sharp --alias:@wisaw/shared=../../packages/shared/src/index.ts --watch",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "lint": "eslint ."
     },

@@ -71,6 +71,20 @@ export const MomentPresignResponseSchema = z.object({
 
 export type MomentPresignResponse = z.infer<typeof MomentPresignResponseSchema>;
 
+/**
+ * 自己削除の要求。
+ *
+ * deviceId は自己申告だが、manifest.json には含めていないため
+ * 「他人の写真の id を見て消す」には、その端末の UUID を別途知る必要がある。
+ * 防御としては弱く、事故防止の域を出ない点は枚数制限と同じ。
+ */
+export const MomentDeleteRequestSchema = z.object({
+    deviceId: z.string().uuid(),
+    id: z.string().uuid(),
+});
+
+export type MomentDeleteRequest = z.infer<typeof MomentDeleteRequestSchema>;
+
 /** manifest.json の1エントリ。閲覧に必要な最小限だけを持つ。 */
 export const MomentEntrySchema = z.object({
     id: z.string(),

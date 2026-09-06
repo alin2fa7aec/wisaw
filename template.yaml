@@ -218,6 +218,35 @@ Resources:
                         Path: /moment/presign
                         Method: POST
 
+    # ゲストによる自己削除。hidden を立てて manifest から外すソフト削除で、
+    # S3 の実体には触らない。式中は運営側が対応できない前提のため、
+    # 「間違えて上げた」をゲスト自身で解決できる口として用意している。
+    MomentDeleteFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: apps/api/
+            Handler: dist/moment-delete.handler
+            # manifest の再構築で全件 Scan するため、既定の3秒では足りなくなりうる。
+            Timeout: 60
+            Environment:
+                Variables:
+                    MOMENT_TABLE_NAME: !Ref MomentTable
+                    MOMENT_PUB_BUCKET: !Ref MomentPubBucket
+                    # 本番では空。ローカルでのみ env.json から MinIO を指す。
+                    S3_ENDPOINT: ""
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !Ref MomentTable
+                - S3CrudPolicy:
+                      BucketName: !Sub "${DomainName}-moments"
+            Events:
+                Delete:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Api
+                        Path: /moment/delete
+                        Method: POST
+
     # アップロード完了を受けて検証・リサイズ・manifest 再構築を行う。
     MomentProcessFunction:
         Type: AWS::Serverless::Function
@@ -264,16 +293,13 @@ Resources:
         Properties:
             FunctionName: wisaw-moment-rebuild
             CodeUri: apps/api/
-            Handler: dist/moment-process.rebuildHandler
+            Handler: dist/moment-manifest.rebuildHandler
             Timeout: 60
-            # 再構築自体は sharp を使わないが、同じモジュールに sharp の import が
-            # あるため読み込み時に解決できる必要がある。
-            Layers:
-                - !Ref SharpLayer
+            # 再構築のロジックは sharp を読み込まない moment-manifest.ts に
+            # 分離してあるため、この関数にレイヤーは要らない。
             Environment:
                 Variables:
                     MOMENT_TABLE_NAME: !Ref MomentTable
-                    MOMENT_SRC_BUCKET: !Ref MomentSrcBucket
                     MOMENT_PUB_BUCKET: !Ref MomentPubBucket
             Policies:
                 - DynamoDBCrudPolicy:
