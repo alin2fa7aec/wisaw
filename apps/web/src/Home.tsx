@@ -505,7 +505,7 @@ export const Home = ({
                     <Button
                         size="lg"
                         className="px-16 text-xs tracking-wider mb-6"
-                        onClick={() => onNavigate?.("rsvp")}
+                        onClick={() => onNavigate?.("/rsvp")}
                     >
                         出欠のご返信はこちら
                     </Button>
