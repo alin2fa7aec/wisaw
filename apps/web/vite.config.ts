@@ -93,7 +93,13 @@ export default defineConfig({
                 target: "http://localhost:3000",
                 changeOrigin: true,
             },
+            // /moment/* をまとめて流したいところだが、下の /moments も前方一致して
+            // しまうため、API の口は1つずつ挙げる。
             "/moment/presign": {
+                target: "http://localhost:3000",
+                changeOrigin: true,
+            },
+            "/moment/delete": {
                 target: "http://localhost:3000",
                 changeOrigin: true,
             },
