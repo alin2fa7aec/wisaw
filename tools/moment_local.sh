@@ -31,6 +31,12 @@ SRC_BUCKET="wisaw-local-moments-src"
 PUB_BUCKET="wisaw-local-moments"
 TABLE="wisaw-moments"
 
+# 受付期間。manifest に載ってフロントの導線の出し分けに使われる。
+# 期間外の見え方を確かめたいときは環境変数で差し替える:
+#   MOMENT_OPEN_AT=2030-01-01T00:00:00+09:00 ./tools/moment_local.sh watch
+OPEN_AT="${MOMENT_OPEN_AT:-2020-01-01T00:00:00+09:00}"
+CLOSE_AT="${MOMENT_CLOSE_AT:-2099-12-31T23:59:59+09:00}"
+
 s3api() { aws --endpoint-url "$S3" s3api "$@"; }
 s3_() { aws --endpoint-url "$S3" s3 "$@"; }
 ddb() { aws --endpoint-url "$DDB" dynamodb "$@"; }
@@ -101,6 +107,8 @@ watch)
                 MOMENT_TABLE_NAME="$TABLE" \
                 MOMENT_SRC_BUCKET="$SRC_BUCKET" \
                 MOMENT_PUB_BUCKET="$PUB_BUCKET" \
+                MOMENT_OPEN_AT="$OPEN_AT" \
+                MOMENT_CLOSE_AT="$CLOSE_AT" \
                 AWS_REGION=ap-northeast-1 \
                 node -e "
                     const { handler } = require('./apps/api/dist/moment-process.js');

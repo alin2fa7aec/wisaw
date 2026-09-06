@@ -232,6 +232,9 @@ Resources:
                 Variables:
                     MOMENT_TABLE_NAME: !Ref MomentTable
                     MOMENT_PUB_BUCKET: !Ref MomentPubBucket
+                    # manifest に載せてフロントへ配る(導線の出し分け用)。
+                    MOMENT_OPEN_AT: !Ref MomentOpenAt
+                    MOMENT_CLOSE_AT: !Ref MomentCloseAt
                     # 本番では空。ローカルでのみ env.json から MinIO を指す。
                     S3_ENDPOINT: ""
             Policies:
@@ -265,6 +268,9 @@ Resources:
                     # !Ref で参照すると循環参照になるため、名前を直接組み立てる。
                     MOMENT_SRC_BUCKET: !Sub "${DomainName}-moments-src"
                     MOMENT_PUB_BUCKET: !Sub "${DomainName}-moments"
+                    # manifest に載せてフロントへ配る(導線の出し分け用)。
+                    MOMENT_OPEN_AT: !Ref MomentOpenAt
+                    MOMENT_CLOSE_AT: !Ref MomentCloseAt
                     # 本番では空。ローカルでのみ env.json から MinIO を指す。
                     S3_ENDPOINT: ""
             Policies:
@@ -301,6 +307,10 @@ Resources:
                 Variables:
                     MOMENT_TABLE_NAME: !Ref MomentTable
                     MOMENT_PUB_BUCKET: !Ref MomentPubBucket
+                    # manifest に載せてフロントへ配る(導線の出し分け用)。
+                    # 受付期間を変えた後はこの関数を叩いて manifest を更新する。
+                    MOMENT_OPEN_AT: !Ref MomentOpenAt
+                    MOMENT_CLOSE_AT: !Ref MomentCloseAt
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !Ref MomentTable

@@ -68,6 +68,13 @@ echo "=== SAM deploy ==="
 sam deploy --profile "$PROFILE" --no-fail-on-empty-changeset \
   --parameter-overrides "${PARAMS[@]}"
 
+# 受付期間は manifest.json にも載っていて、フロントが「受付前/受付後は
+# アップロードの導線を出さない」の判断に使う。パラメータを変えても manifest は
+# 自動では変わらないため、ここで組み直しておく。
+echo "=== Rebuild moment manifest ==="
+"$(dirname "$0")/moment_admin.sh" rebuild ||
+    echo "  再構築に失敗。./tools/moment_admin.sh rebuild を手で実行すること"
+
 echo "=== Upload frontend to S3 ==="
 aws s3 sync apps/web/dist/ "s3://${S3_BUCKET}" \
   --delete \

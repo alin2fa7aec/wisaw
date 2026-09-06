@@ -31,6 +31,11 @@ export const s3 = s3Endpoint
 export const TABLE_NAME = process.env.MOMENT_TABLE_NAME!;
 export const PUB_BUCKET = process.env.MOMENT_PUB_BUCKET!;
 
+// 受付期間。manifest に載せてフロントへ配る(導線の出し分けに使う)。
+// 判定の正本は presign 側のガードで、こちらは表示のためだけのもの。
+const OPEN_AT = Date.parse(process.env.MOMENT_OPEN_AT ?? "");
+const CLOSE_AT = Date.parse(process.env.MOMENT_CLOSE_AT ?? "");
+
 /**
  * DynamoDB を正本として manifest.json を組み直し、公開バケットへ書く。
  *
@@ -74,7 +79,13 @@ export async function rebuildManifest(): Promise<number> {
         new PutObjectCommand({
             Bucket: PUB_BUCKET,
             Key: "moments/manifest.json",
-            Body: JSON.stringify({ updatedAt: Date.now(), entries }),
+            Body: JSON.stringify({
+                updatedAt: Date.now(),
+                // 未設定なら載せない。フロントは欠けていれば導線を出す。
+                openAt: Number.isFinite(OPEN_AT) ? OPEN_AT : undefined,
+                closeAt: Number.isFinite(CLOSE_AT) ? CLOSE_AT : undefined,
+                entries,
+            }),
             ContentType: "application/json",
             // polling で拾えるよう短命にする。
             CacheControl: "max-age=5",

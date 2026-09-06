@@ -102,6 +102,20 @@ export type MomentEntry = z.infer<typeof MomentEntrySchema>;
 
 export const MomentManifestSchema = z.object({
     updatedAt: z.number().int(),
+    /**
+     * 受付期間(epoch ミリ秒)。
+     *
+     * 受付期間は CloudFormation のパラメータが正本で、API 側の Lambda だけが
+     * 知っている。フロントが「受付前/受付後はアップロードの導線を出さない」を
+     * 判断できるよう、manifest に載せて配る。読み取り API を足さずに済ませる
+     * ための経路であり、polling するファイルに相乗りさせている。
+     *
+     * 古い manifest には存在しないため optional。欠けている場合フロントは
+     * 導線を出す(判断できないことを理由に塞がない)。実際の可否は
+     * presign 側のガードが決める。
+     */
+    openAt: z.number().int().optional(),
+    closeAt: z.number().int().optional(),
     entries: z.array(MomentEntrySchema),
 });
 

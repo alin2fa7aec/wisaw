@@ -7,6 +7,7 @@ import { Lightbox } from "@/components/Lightbox";
 import {
     MOMENT_MAX_FILE_BYTES,
     MOMENT_MAX_PER_DEVICE,
+    isWithinMomentWindow,
     type MomentEntry,
     type MomentManifest,
 } from "@wisaw/shared";
@@ -52,6 +53,22 @@ type UploadState = {
     errors: string[];
 };
 
+/** 受付期間に対する現在地。manifest に期間が無ければ判断しない。 */
+type WindowState = "unknown" | "before" | "open" | "after";
+
+function windowStateOf(manifest: MomentManifest | null): WindowState {
+    if (!manifest?.openAt || !manifest.closeAt) return "unknown";
+    const now = Date.now();
+    if (isWithinMomentWindow(now, manifest.openAt, manifest.closeAt)) return "open";
+    return now < manifest.openAt ? "before" : "after";
+}
+
+const DATE_FORMAT = new Intl.DateTimeFormat("ja-JP", {
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Tokyo",
+});
+
 const ERROR_MESSAGES: Record<string, string> = {
     closed: "写真の受付期間は終了しました。ありがとうございました。",
     rate_limited: "混み合っています。少し時間をおいてからお試しください。",
@@ -63,6 +80,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export const MomentShare = () => {
     const [entries, setEntries] = useState<MomentEntry[]>([]);
+    const [manifest, setManifest] = useState<MomentManifest | null>(null);
     const [loading, setLoading] = useState(true);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const [upload, setUpload] = useState<UploadState | null>(null);
@@ -82,8 +100,10 @@ export const MomentShare = () => {
             try {
                 const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`);
                 if (!res.ok) return;
-                const manifest: MomentManifest = await res.json();
-                if (!cancelled) setEntries(manifest.entries ?? []);
+                const loaded: MomentManifest = await res.json();
+                if (cancelled) return;
+                setManifest(loaded);
+                setEntries(loaded.entries ?? []);
             } catch {
                 // 未デプロイ・オフラインなどは黙って無視し、次の周期に任せる
             } finally {
@@ -205,35 +225,54 @@ export const MomentShare = () => {
 
     const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
+    // 受付期間外なら、そもそもアップロードの導線を出さない。
+    // manifest に期間が載っていない場合("unknown")は出す。判断できないことを
+    // 理由に塞ぐと、載せる前の manifest が残っているだけで投稿できなくなる。
+    // 実際の可否は presign 側のガードが決める。
+    const windowState = windowStateOf(manifest);
+    const canUpload = windowState === "open" || windowState === "unknown";
+
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
             <FadeIn>
                 <h1 className="text-2xl text-center mb-3">Moment Share</h1>
                 <p className="text-center text-sm text-muted-foreground mb-8">
-                    お撮りいただいたお写真をぜひご共有ください
+                    {windowState === "after"
+                        ? "お写真の受付は終了しました。ありがとうございました"
+                        : "お撮りいただいたお写真をぜひご共有ください"}
                 </p>
             </FadeIn>
 
             <FadeIn variant="bounce" delay={200}>
                 <div className="flex justify-center mb-10">
-                    <input
-                        ref={inputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                            if (e.target.files?.length) handleFiles(e.target.files);
-                            e.target.value = "";
-                        }}
-                    />
-                    <Button
-                        onClick={() => inputRef.current?.click()}
-                        disabled={upload !== null && upload.done < upload.total}
-                    >
-                        <Camera className="size-5 mr-2" />
-                        写真を追加する
-                    </Button>
+                    {canUpload ? (
+                        <>
+                            <input
+                                ref={inputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                    if (e.target.files?.length) handleFiles(e.target.files);
+                                    e.target.value = "";
+                                }}
+                            />
+                            <Button
+                                onClick={() => inputRef.current?.click()}
+                                disabled={upload !== null && upload.done < upload.total}
+                            >
+                                <Camera className="size-5 mr-2" />
+                                写真を追加する
+                            </Button>
+                        </>
+                    ) : windowState === "before" ? (
+                        <p className="text-sm text-muted-foreground">
+                            お写真の受付は
+                            {DATE_FORMAT.format(new Date(manifest!.openAt!))}
+                            からです
+                        </p>
+                    ) : null}
                 </div>
             </FadeIn>
 
