@@ -1,11 +1,5 @@
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useReducer,
-    useRef,
-    type ReactNode,
-} from "react";
+import { useCallback, useReducer, useRef, type ReactNode } from "react";
+import { SequenceContext } from "@/components/fade-sequence-context";
 
 /**
  * FadeIn を「前の要素が現れてから次が現れる」依存チェーンとして連動させる仕組み。
@@ -15,19 +9,6 @@ import {
  * これにより画像の読み込み速度に関係なく、常に上から順に現れることが保証される。
  * delay の秒数で見た目を調整するのではなく、純粋な依存関係で順序を決める。
  */
-type SequenceApi = {
-    /** インスタンスごとに一度だけ呼び、登場順の index を確定する */
-    register: () => number;
-    /** その index の要素が登場した(可視になった)ことを通知する */
-    reportShown: (index: number) => void;
-    /** その index が登場を許可されているか(直前の要素が登場済みか) */
-    isReleased: (index: number) => boolean;
-};
-
-const SequenceContext = createContext<SequenceApi | null>(null);
-
-export const useFadeSequence = () => useContext(SequenceContext);
-
 export const FadeSequence = ({ children }: { children: ReactNode }) => {
     const nextIndex = useRef(0);
     const shown = useRef<Set<number>>(new Set());

@@ -20,4 +20,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // shadcn (MynaUI) が生成したコンポーネント。コンポーネント以外の export
+    // (buttonVariants など) を含むが、生成物に手を入れると再生成で失われるため
+    // Fast Refresh の規則はここでは適用しない。
+    files: ['**/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

@@ -18,6 +18,15 @@ export type LightboxImage = {
 
 const SWIPE_THRESHOLD = 50;
 
+/**
+ * 端で折り返す添字。剰余を非負に正規化する。
+ *
+ * コンポーネントの外に置いてあるのは、中で定義すると毎レンダー別物になり、
+ * これを使う effect の依存が毎回変わってしまうため。
+ */
+const wrapIndex = (i: number, length: number) =>
+    ((i % length) + length) % length;
+
 export const Lightbox = ({
     images,
     index,
@@ -39,20 +48,18 @@ export const Lightbox = ({
         dy: number;
     } | null>(null);
 
-    const wrap = (i: number) => ((i % images.length) + images.length) % images.length;
-
     useEffect(() => {
         for (let d = -2; d <= 2; d++) {
             const img = new Image();
-            img.src = images[wrap(index + d)]!.src;
+            img.src = images[wrapIndex(index + d, images.length)]!.src;
         }
     }, [index, images]);
 
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
-            if (e.key === "ArrowLeft") onChange(wrap(index - 1));
-            if (e.key === "ArrowRight") onChange(wrap(index + 1));
+            if (e.key === "ArrowLeft") onChange(wrapIndex(index - 1, images.length));
+            if (e.key === "ArrowRight") onChange(wrapIndex(index + 1, images.length));
         };
         document.addEventListener("keydown", handleKey);
         return () => document.removeEventListener("keydown", handleKey);
@@ -134,7 +141,7 @@ export const Lightbox = ({
                 applyTranslate(dir * window.innerWidth, true);
                 const onDone = () => {
                     el.removeEventListener("transitionend", onDone);
-                    onChange(wrap(index - dir));
+                    onChange(wrapIndex(index - dir, images.length));
                 };
                 el.addEventListener("transitionend", onDone);
             } else {
@@ -150,14 +157,14 @@ export const Lightbox = ({
             el.removeEventListener("touchmove", onMove);
             el.removeEventListener("touchend", onEnd);
         };
-    }, [index, images.length, onChange]);
+    }, [index, images.length, onChange, onClose]);
 
     useEffect(() => {
         applyTranslate(0, false);
     }, [index]);
 
     const slides = [-2, -1, 0, 1, 2].map((offset) => ({
-        img: images[wrap(index + offset)]!,
+        img: images[wrapIndex(index + offset, images.length)]!,
         offset,
     }));
 
@@ -180,7 +187,7 @@ export const Lightbox = ({
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
                 onClick={(e) => {
                     e.stopPropagation();
-                    onChange(wrap(index - 1));
+                    onChange(wrapIndex(index - 1, images.length));
                 }}
             >
                 &#8249;
@@ -189,7 +196,7 @@ export const Lightbox = ({
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-white text-3xl px-3 py-6 hover:bg-white/10 rounded-lg"
                 onClick={(e) => {
                     e.stopPropagation();
-                    onChange(wrap(index + 1));
+                    onChange(wrapIndex(index + 1, images.length));
                 }}
             >
                 &#8250;

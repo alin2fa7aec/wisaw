@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useFadeSequence } from "@/components/FadeSequence";
+import { useFadeSequence } from "@/components/fade-sequence-context";
 
 const FADE_VARIANTS = {
     "slide-up": "animate-fade-in",
@@ -31,10 +31,25 @@ export const FadeIn = ({
     const [imgReady, setImgReady] = useState(!waitForImage);
 
     // <FadeSequence> の内側なら、登場順の index を確定して依存チェーンに参加する。
+    //
+    // 登録は render 中ではなく mount 後に行う。render 中に ref を読み書きすると
+    // React Compiler が前提を崩しうるため(react-hooks/refs)。
+    // 兄弟の effect は mount 順 = DOM 順に走るので、確定する index の並びは変わらない。
+    //
+    // sequence は provider が毎レンダー value を作り直すため識別子が変わる。
+    // 依存に入れると effect が何度も走るので、ref で二重登録を止める。
     const sequence = useFadeSequence();
     const indexRef = useRef(-1);
-    if (sequence && indexRef.current < 0) indexRef.current = sequence.register();
-    const released = sequence ? sequence.isReleased(indexRef.current) : true;
+    const [index, setIndex] = useState(-1);
+
+    useEffect(() => {
+        if (!sequence || indexRef.current >= 0) return;
+        indexRef.current = sequence.register();
+        setIndex(indexRef.current);
+    }, [sequence]);
+
+    // index が確定するまでは保留する(1レンダーだけ)。
+    const released = sequence ? index >= 0 && sequence.isReleased(index) : true;
 
     useEffect(() => {
         const el = ref.current;
@@ -57,8 +72,17 @@ export const FadeIn = ({
         const el = ref.current;
         if (!el) return;
         const img = el.querySelector("img");
-        if (!img) { setImgReady(true); return; }
-        if (img.complete) { setImgReady(true); return; }
+
+        // 画像が無い、もしくは既に読み込み済みなら、次のフレームで解放する。
+        // effect の中で同期的に setState するとカスケードレンダーになるため
+        // (react-hooks/set-state-in-effect)、load を待つ経路と同じく
+        // コールバック越しの通知に揃える。遅れは1フレームで、フェードインの
+        // 見た目には出ない。
+        if (!img || img.complete) {
+            const id = requestAnimationFrame(() => setImgReady(true));
+            return () => cancelAnimationFrame(id);
+        }
+
         const onLoad = () => setImgReady(true);
         img.addEventListener("load", onLoad);
         return () => img.removeEventListener("load", onLoad);
@@ -68,8 +92,8 @@ export const FadeIn = ({
 
     // 自分が登場したらチェーンの次の要素を解放する。
     useEffect(() => {
-        if (visible) sequence?.reportShown(indexRef.current);
-    }, [visible, sequence]);
+        if (visible && index >= 0) sequence?.reportShown(index);
+    }, [visible, sequence, index]);
 
     return (
         <div
