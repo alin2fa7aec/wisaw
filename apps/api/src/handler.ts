@@ -104,9 +104,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                     ConditionExpression: "attribute_not_exists(pk)",
                 }),
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const errName = (err as { name?: string } | null)?.name;
             // 既に存在 = リトライ/二重送信の可能性 -> 既存を返して idempotent にする
-            if (err?.name === "ConditionalCheckFailedException") {
+            if (errName === "ConditionalCheckFailedException") {
                 const got = await ddb.send(
                     new GetItemCommand({
                         TableName: TABLE_NAME,
@@ -116,7 +117,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                 );
 
                 if (got.Item) {
-                    const item = unmarshall(got.Item) as any;
+                    const item = unmarshall(got.Item) as Record<string, unknown>;
                     const existingHash = item.payloadHash as string | undefined;
 
                     if (existingHash && existingHash !== ph) {
