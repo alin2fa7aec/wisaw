@@ -37,13 +37,49 @@ type ContentKey = "home" | "rsvp" | "gallery" | "moment" | "dinosaur-game";
 
 type MynaIcon = ComponentType<SVGAttributes<SVGElement>>;
 
-const contentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
+const allContentItems: { key: ContentKey; label: string; icon: MynaIcon }[] = [
     { key: "home", label: "Home", icon: HomeIcon },
     { key: "rsvp", label: "RSVP", icon: Mail },
     { key: "gallery", label: "Gallery", icon: Image },
     { key: "moment", label: "Moment Share", icon: Camera },
     { key: "dinosaur-game", label: "Dinosaur Game", icon: Controller },
 ];
+
+const MOMENT_UNLOCK_KEY = "wisaw.moment.unlocked";
+
+/**
+ * Moment Share の導線を出すかどうか。
+ *
+ * `?moment=1` を付けて開いた端末にだけメニュー項目を見せる。本番へ先に
+ * デプロイして実地で確かめつつ、それまでゲストが偶然たどり着かないようにする
+ * ための仕切りである。
+ *
+ * **これは濫用対策ではない。** API は期間内なら誰の要求でも受けるし、
+ * manifest.json は公開バケットにあって誰でも読める。ドメイン自体が
+ * Certificate Transparency ログに載っている以上、URL の秘匿を防御と見なせない
+ * ことは moment-share.md に書いたとおり。ここで隠しているのは導線だけである。
+ *
+ * 一度開けたら localStorage に覚えさせる。式当日に配る QR をこの URL にしておけば、
+ * 読み取った端末はその後パラメータ無しで開いても導線が残る。公開に際して
+ * web を再デプロイする必要も無い。
+ */
+function isMomentUnlocked(): boolean {
+    const inQuery =
+        new URLSearchParams(window.location.search).get("moment") === "1";
+    try {
+        if (inQuery) localStorage.setItem(MOMENT_UNLOCK_KEY, "1");
+        return inQuery || localStorage.getItem(MOMENT_UNLOCK_KEY) === "1";
+    } catch {
+        // プライベートブラウズ等で localStorage が使えない場合は
+        // そのアクセスのクエリだけで判断する
+        return inQuery;
+    }
+}
+
+// URL は SPA の生存中に変わらない(ルータを持たない)ので、読み取りは一度でよい。
+const contentItems = isMomentUnlocked()
+    ? allContentItems
+    : allContentItems.filter((item) => item.key !== "moment");
 
 const App = () => {
     const [activeContent, setActiveContent] = useState<ContentKey>("home");
