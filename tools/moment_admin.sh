@@ -91,6 +91,73 @@ download)
     mkdir -p "$dir"
     echo "オリジナルを $dir へ同期します..."
     aws_ s3 sync "s3://${SRC_BUCKET}/original/" "$dir"
+
+    # S3 のキーは original/<uuid> で拡張子を持たない。そのままでは写真アプリが
+    # 開けないため、落とした後に中身を見て付ける。
+    #
+    # 判定は先頭バイトから行う。Content-Type は自己申告で信用できないため
+    # (apps/api/src/moment-process.ts の sniff() と同じ理由・同じ判定)、
+    # メタデータではなく実体を見る。
+    echo "拡張子を付けています..."
+    node -e '
+        const fs = require("fs");
+        const path = require("path");
+
+        const dir = process.argv[1];
+
+        // apps/api/src/moment-process.ts の sniff() と対応させること。
+        const extensionOf = (buf) => {
+            if (buf.length < 12) return null;
+            if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return ".jpg";
+            if (buf[0] === 0x89 && buf.toString("latin1", 1, 4) === "PNG") return ".png";
+            if (
+                buf.toString("latin1", 0, 4) === "RIFF" &&
+                buf.toString("latin1", 8, 12) === "WEBP"
+            )
+                return ".webp";
+            if (buf.toString("latin1", 4, 8) === "ftyp") {
+                const brand = buf.toString("latin1", 8, 12);
+                if (["heic", "heix", "hevc", "hevx", "mif1", "msf1"].includes(brand))
+                    return ".heic";
+                if (brand === "avif" || brand === "avis") return ".avif";
+            }
+            return null;
+        };
+
+        let renamed = 0;
+        let skipped = 0;
+
+        for (const name of fs.readdirSync(dir)) {
+            const from = path.join(dir, name);
+            if (!fs.statSync(from).isFile()) continue;
+            if (path.extname(name)) continue;
+
+            const fd = fs.openSync(from, "r");
+            const head = Buffer.alloc(12);
+            fs.readSync(fd, head, 0, 12, 0);
+            fs.closeSync(fd);
+
+            const ext = extensionOf(head);
+            if (!ext) {
+                // 判定できないものは触らない。消さずに残して人が見る。
+                console.log(`  判定できず: ${name}`);
+                skipped++;
+                continue;
+            }
+
+            const to = path.join(dir, name + ext);
+            if (fs.existsSync(to)) {
+                console.log(`  既にある: ${name + ext}`);
+                skipped++;
+                continue;
+            }
+            fs.renameSync(from, to);
+            renamed++;
+        }
+
+        console.log(`  ${renamed} 件に拡張子を付けました` + (skipped ? ` (${skipped} 件は据え置き)` : ""));
+    ' "$dir"
+
     echo
     echo "完了。実体を削除する前に、必ず中身を確認すること。"
     echo "オリジナルには GPS を含む EXIF が残っている点にも留意する。"
