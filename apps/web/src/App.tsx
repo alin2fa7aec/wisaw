@@ -13,7 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { MenuIcon } from "lucide-react";
 import { X } from "@mynaui/icons-react";
 import { TapPetals } from "@/components/TapPetals";
-import { CONTENT_ROUTES, MOMENT_PATH, isMomentUnlocked } from "@/routes";
+import { CONTENT_ROUTES, MOMENT_PATH } from "@/routes";
 
 const HomePage = lazy(() =>
     import("./Home").then((m) => ({ default: m.Home })),
@@ -31,16 +31,6 @@ const App = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-
-    // 解錠の判定は初回描画時の URL で行う。`/moment` を直接開いた場合も含めて
-    // localStorage に控えるので、以後 Home から入ってもメニューに残る。
-    const [momentUnlocked] = useState(() =>
-        isMomentUnlocked(window.location.pathname, window.location.search),
-    );
-
-    const items = momentUnlocked
-        ? CONTENT_ROUTES
-        : CONTENT_ROUTES.filter((item) => item.path !== MOMENT_PATH);
 
     const handleSelect = (path: string) => {
         navigate(path);
@@ -81,7 +71,7 @@ const App = () => {
                         </Button>
                     </DrawerHeader>
                     <nav className="flex flex-col gap-1 p-4">
-                        {items.map((item) => (
+                        {CONTENT_ROUTES.map((item) => (
                             <Button
                                 key={item.path}
                                 variant={
