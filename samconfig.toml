@@ -6,4 +6,8 @@ region = "ap-northeast-1"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
-parameter_overrides = "SesFromAddress=noreply@wisaw.click AllowOrigin=https://wisaw.click DomainName=wisaw.click AcmCertificateArn=arn:aws:acm:us-east-1:155149244897:certificate/69d15452-1563-43b4-8d5f-9c86ae67001f HostedZoneId=Z05352192U0UUF5Z7NLKJ"
+# MomentOpenAt / MomentCloseAt は template.yaml にも既定値があるが、ここにも明示する。
+# 指定せずに deploy すると CloudFormation は前回の値を引き継ぐため、
+# 「上書き無しで実行し直せば既定に戻る」は成立しない。ここに確定値を置いておくと、
+# tools/deploy_service.sh を素で実行するたびに必ずこの値へ戻る。
+parameter_overrides = "SesFromAddress=noreply@wisaw.click AllowOrigin=https://wisaw.click DomainName=wisaw.click AcmCertificateArn=arn:aws:acm:us-east-1:155149244897:certificate/69d15452-1563-43b4-8d5f-9c86ae67001f HostedZoneId=Z05352192U0UUF5Z7NLKJ MomentOpenAt=2026-10-18T00:00:00+09:00 MomentCloseAt=2026-10-25T23:59:59+09:00"
